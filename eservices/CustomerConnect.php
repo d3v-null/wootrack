@@ -15,7 +15,7 @@ define("USER_INACCESSIBLE_PATH", "C:/XAMPP/cgi-bin/");		// ****** MODIFY AS REQU
 															// The directory that will hold WSDL, JSON and properties files
 															// For security reasons, must be inaccessible to web users
 															
-define("FORCED_SSL_VERSION", 0);							// ****** MODIFY AS REQUIRED ******
+define("FORCED_SSL_VERSION", 3);							// ****** MODIFY AS REQUIRED ******
 															// Version of SSL to be forced
 															// Set value to 0 for customer default SSL version (preferred)
 															// Set value to 3 if unable to connect to server because defaulting to

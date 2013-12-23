@@ -116,7 +116,7 @@ $passwordDigest = base64_encode(pack('H*', sha1(pack('H*', $nonce) . pack('a*', 
 		}
 	}
 	
-	public function __doRequest($request, $location, $action, $version)
+	public function __doRequest($request, $location, $action, $version, $one_way=NULL)
 	{
 		$cb = new WSSecurityCallbacks();
 		if( $cb->displaySoapRequests() )	// Display SOAP request XML prior to call for debugging? Driven by parameter setting in CustomerConnect.php.
