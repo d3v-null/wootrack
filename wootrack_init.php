@@ -20,7 +20,6 @@
 */
 
 function Wootrack_init($file) {
-
     require_once('Wootrack_Plugin.php');
     $aPlugin = new Wootrack_Plugin();
 
@@ -44,6 +43,10 @@ function Wootrack_init($file) {
     if (!$file) {
         $file = __FILE__;
     }
+    
+    //register wootrack shipping method
+    include("Wootrack_Register_Shipping.php");    
+    
     // Register the Plugin Activation Hook
     register_activation_hook($file, array(&$aPlugin, 'activate'));
 

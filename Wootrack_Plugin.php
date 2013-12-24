@@ -14,11 +14,38 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         //  http://plugin.michael-simpson.com/?page_id=31
         return array(
             //'Activated' => array(__('Activate StarTrack shipping methods', 'wootrack')),
-            'AccountNo' => array(__('StarTrack Account Number', 'wootrack')), 
-            'AccessKey' => array(__('StarTrack Access Key', 'wootrack')), 
-            'Username'  => array(__('StarTrack Username', 'wootrack')),
-            'Password'  => array(__('StarTrack Password', 'wootrack')),
-            'wsdlFile'  => array(__('WSDL File Spec', 'wootrack')),
+            'AccountNo'     => array(
+                __('StarTrack Account Number', 'wootrack'),
+                '12345'
+            ), 
+            'AccessKey'     => array(
+                __('StarTrack Access Key', 'wootrack'),
+                '30405060708090'
+            ), 
+            'Username'      => array(
+                __('StarTrack Username', 'wootrack'),
+                'TAY00002'
+            ),
+            'Password'      => array(
+                __('StarTrack Password', 'wootrack'),
+                'Tay12345'
+            ),
+            'wsdlFile'      => array(
+                __('WSDL File Spec', 'wootrack'),
+                'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
+            ),
+            'senderSuburb'  => array(
+                __('Sender\'s Suburb', 'wootrack'),
+                ''
+            ),
+            'senderPostCode'=> array(
+                __('Sender\'s Post Code', 'wootrack'),
+                ''
+            ),
+            'senderState'   => array(
+                __('Sender\'s State', 'wootrack'),
+                ''
+            )
         );
     }
 
@@ -48,23 +75,27 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
     
     protected function getTableMeta() {
         return array(
-            'servicepreferences' => array(
-                'service_code' => array(
-                    'name'  => 'Service Code',
-                    'sql'   => 'INT NOT NULL AUTO_INCREMENT',
-                    'primary' => True    
+            'service_preferences' => array(
+                'columns' => array(
+                    'service_code' => array(
+                        'name'  => 'Service Code',
+                        'sql'   => 'INT NOT NULL AUTO_INCREMENT',  
+                    ),
+                    'service_name' => array (
+                        'name'  => 'Service Name',
+                        'sql'   => 'VARCHAR(50)',
+                    ),
+                    'price_adjustment' => array(
+                        'name'  => 'Price Adjustment',
+                        'sql'   => 'FLOAT'
+                    ),
+                    'enabled' => array (
+                        'name' => 'Enabled',
+                        'sql'  => 'INT'
+                    ),
                 ),
-                'service_name' => array (
-                    'name'  => 'Service Name',
-                    'sql'   => 'VARCHAR(50)',
-                ),
-                'enabled' => array (
-                    'name' => 'Enabled',
-                    'sql'  => 'BOOL'
-                ),
-                'price_adjustment' => array(
-                    'name'  => 'Price Adjustment',
-                    'sql'   => 'FLOAT'
+                'primary' => array(
+                    'service_code'
                 )
             )
         );
@@ -90,19 +121,26 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         //        $wpdb->query("CREATE TABLE IF NOT EXISTS `$tableName` (
         //            `id` INTEGER NOT NULL");
         
+        If(WP_DEBUG) error_log("installing database tables");
+        
         global $wpdb;
-        foreach( $this->getTableMeta() as $tableName => $columns ){
+        foreach( $this->getTableMeta() as $tableName => $tableMeta ){
                 $sql = 
-                    "CREATE TABLE IF NOT EXISTS " . 
+                    "CREATE TABLE IF NOT EXISTS\n" . 
                     $this->prefixTableName($tableName) .
-                    " ( ";
+                    "(\n";
                     
-                foreach( $columns as $columnName => $columnMeta ){
-                    $sql .= "'$columnName' " . $columnMeta['sql'] . " ";
-                    if( $columnMeta['primary'] ) $sql .= "PRIMARY KEY( $columnName )";
+                foreach( $tableMeta['columns'] as $columnName => $columnMeta ){
+                    $sql .= "    ".$columnName." ".$columnMeta['sql'].",\n";
+                    //if( $columnMeta['primary'] ) $sql .= "PRIMARY KEY( $columnName )";
                 }
                 
-                $sql .= " ); ";
+                $sql .= "    PRIMARY KEY( ".implode(', ', $tableMeta['primary'])." )\n";
+                
+                $sql .= ")";
+                
+                If(WP_DEBUG) error_log( "creating table with SQL: \n". $sql );
+                
                 $wpdb->query( $sql );
         };
         //TODO: Assert tables exist
@@ -117,6 +155,8 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         //        global $wpdb;
         //        $tableName = $this->prefixTableName('mytable');
         //        $wpdb->query("DROP TABLE IF EXISTS `$tableName`");
+        
+        If(WP_DEBUG) error_log("installing database tables");
         
         global $wpdb;
         $wpdb->query(
@@ -135,7 +175,9 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
     
     public function activate() {
         
-        include('Wootrack_Register_Shipping.php');
+        If(WP_DEBUG) error_log("activating plugin");
+        
+        // include('Wootrack_Register_Shipping.php');
         
         // // prepare connection details
         
@@ -168,7 +210,7 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
  
     public function deactivate() {
         //deregister shipping classes
-        
+        If(WP_DEBUG) error_log("deactivating plugin");
     }
     
     public function addActionsAndFilters() {

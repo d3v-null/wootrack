@@ -98,7 +98,6 @@ Wootrack_i18n_init();
 // If it is successful, continue with initialization for this plugin
 if (Wootrack_PhpVersionCheck() and Wootrack_WoocommerceCheck()) {
     // Only load and run the init function if we know PHP version can parse it
-    // include("Wootrack_Register_Shipping.php");
     include_once('wootrack_init.php');
     Wootrack_init(__FILE__);
 }
