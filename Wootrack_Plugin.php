@@ -73,7 +73,7 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         return 'wootrack.php';
     }
     
-    protected function getTableMeta() {
+    public function getTableMeta() {
         return array(
             'service_preferences' => array(
                 'columns' => array(

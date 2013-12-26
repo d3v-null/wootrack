@@ -154,7 +154,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'username'      => $this->username,
                 'password'      => $this->password,
                 'userAccessKey' => $this->access_key,
-                'qsdkFileSpec'  => $this->wsdl_file,
+                'wsdlFilespec'  => $this->wsdl_file,
             );
                 
             $request = array(
@@ -180,37 +180,31 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             if($response){
                 foreach($response->codes as $code) {
                     if( $code->isDefault) {
-                        $services[$code->code] =$code->desc;
+                        $services[$code->serviceCode] =$code->serviceDescription;
                     }
                 }
             }
             
             // Generate the HTML for the service preferences form.
             $prefs = $this->wootrack->getTable('service_preferences');
-            $pref_meta = $this->wootrack->getTableMeta()['service_preferences'];
+            IF(WP_DEBUG) error_log(serialize($prefs));
+            
             ?>
             
             <tr valign="top">
-                <th scope="row" class="titledesc"><?php __('Service preferences', 'wootrack'); ?></th>
+                <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
                 <td class="forminp" id="<?php echo $this->id; ?>_services">
                     <table class="service preferences" cellspacing="0">
                         <thead>
                             <tr>
                                 <th class="check-column"><input type="checkbox"></th>
-                                <th class="service_code"><?php __('Service Code', 'wootrack'); ?></th>
-                                <th class="service_name"><?php __('Serbice Name', 'wootrack'); ?></th>
-                                <?php
-                                    // foreach($pref_meta['columns']; as $column => $meta){
-                                        // if($meta['display']){
-                                            // echo "<th class='".$column."'>".$meta['name']."</th>";
-                                        // }
-                                    // }
-                                ?>
+                                <th class="service_code"><?php _e('Service Code', 'wootrack'); ?></th>
+                                <th class="service_name"><?php _e('Service Name', 'wootrack'); ?></th>
                             </tr>
                         </thead>
                         <tfoot>
                             <tr>
-                                <th colspan=2>
+                                <th colspan=3>
                                     <select id="select_service">
                                         <option value="">Select a service</option>
                                         <?php
@@ -220,12 +214,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                                             }
                                         ?>
                                     </select>
-                                    <a href="#" class="add button">
-                                        <?php '+ '.__('Add service', 'wootrack'); ?>
-                                    </a>
-                                    <a href="#" class="remove button">
-                                        <?php '- '.__('Remove selected services', 'wootrack'); ?>
-                                    </a>
+                                    <a href="#" class="add button"> <?php _e('Add service', 'wootrack'); ?></a>
+                                    <a href="#" class="remove button"><?php _e('Remove selected services', 'wootrack'); ?></a>
                                 </th>
                             </tr>
                         </tfoot>
@@ -235,16 +225,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                         ?>
                             <tr class="service">
                                 <td class="check-column"><input type="checkbox" name="select" /></td>
-                                <td class="service_code"><?php echo pref['code']; ?></td>
-                                <td class="service_name"><?php echo pref['name']; ?></td>
-                                <?php 
-                                    // foreach($pref_meta['columns'] as $column => $meta){
-                                        // if($meta['disp']){
-                                            // echo "<td class='service_$column'>".$pref[$column]."</td>"  
-                                        // }
-                                    // }
-                                ?>
+                                <td class="service_code"><?php echo $pref->code; ?></td>
+                                <td class="service_name"><?php echo $pref->name; ?></td>
                             </tr>
+                        <?php 
+                        } 
+                        ?>
                         </tbody>
                     </table><!--/.service-preferences-table-->
                 </td>
@@ -275,7 +261,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 
                 // Remove service
                 jQuery('#<?php echo $this->id; ?>_services').on( 'click', 'a.remove', function(){
-                    var answer = confirm("<?php __('Are you sure you want to delete the selected rates?', 'wootrack'); ?>" );
+                    var answer = confirm("<?php _e('Are you sure you want to delete the selected rates?', 'wootrack'); ?>" );
                     if(answer) {
                         jQuery('#<?php echo $this->id; ?>_services table tbody tr td.check-column input:checked').each(function(i, el){
                             jQuery(el).closest('tr').remove();
@@ -290,8 +276,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }
     
     //TODO: write process_shipping_preferences
-    public function process_shipping_preferences() {
-        
+    // public function process_shipping_preferences() {
+    // }    
     
     
     /**
@@ -395,7 +381,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                         // 'id'    => $v->serviceCode,
                         // 'label' => $v->serviceDescription,
                         // '
-            }
+            
         }
 
         $rate = array(
