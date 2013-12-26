@@ -10,60 +10,60 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
      * See: http://plugin.michael-simpson.com/?page_id=31
      * @return array of option meta data.
      */
-    public function getOptionMetaData() {
+    // public function getOptionMetaData() {
         //  http://plugin.michael-simpson.com/?page_id=31
-        return array(
-            //'Activated' => array(__('Activate StarTrack shipping methods', 'wootrack')),
-            'AccountNo'     => array(
-                __('StarTrack Account Number', 'wootrack'),
-                '12345'
-            ), 
-            'AccessKey'     => array(
-                __('StarTrack Access Key', 'wootrack'),
-                '30405060708090'
-            ), 
-            'Username'      => array(
-                __('StarTrack Username', 'wootrack'),
-                'TAY00002'
-            ),
-            'Password'      => array(
-                __('StarTrack Password', 'wootrack'),
-                'Tay12345'
-            ),
-            'wsdlFile'      => array(
-                __('WSDL File Spec', 'wootrack'),
-                'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
-            ),
-            'senderSuburb'  => array(
-                __('Sender\'s Suburb', 'wootrack'),
-                ''
-            ),
-            'senderPostCode'=> array(
-                __('Sender\'s Post Code', 'wootrack'),
-                ''
-            ),
-            'senderState'   => array(
-                __('Sender\'s State', 'wootrack'),
-                ''
-            )
-        );
-    }
+        // return array(
+            // 'Activated' => array(__('Activate StarTrack shipping methods', 'wootrack')),
+            // 'AccountNo'     => array(
+                // __('StarTrack Account Number', 'wootrack'),
+                // '12345'
+            // ), 
+            // 'AccessKey'     => array(
+                // __('StarTrack Access Key', 'wootrack'),
+                // '30405060708090'
+            // ), 
+            // 'Username'      => array(
+                // __('StarTrack Username', 'wootrack'),
+                // 'TAY00002'
+            // ),
+            // 'Password'      => array(
+                // __('StarTrack Password', 'wootrack'),
+                // 'Tay12345'
+            // ),
+            // 'wsdlFile'      => array(
+                // __('WSDL File Spec', 'wootrack'),
+                // 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
+            // ),
+            // 'senderSuburb'  => array(
+                // __('Sender\'s Suburb', 'wootrack'),
+                // ''
+            // ),
+            // 'senderPostCode'=> array(
+                // __('Sender\'s Post Code', 'wootrack'),
+                // ''
+            // ),
+            // 'senderState'   => array(
+                // __('Sender\'s State', 'wootrack'),
+                // ''
+            // )
+        // );
+    // }
 
 //    protected function getOptionValueI18nString($optionValue) {
 //        $i18nValue = parent::getOptionValueI18nString($optionValue);
 //        return $i18nValue;
 //    }
 
-    protected function initOptions() {
-        $options = $this->getOptionMetaData();
-        if (!empty($options)) {
-            foreach ($options as $key => $arr) {
-                if (is_array($arr) && count($arr) > 1) {
-                    $this->addOption($key, $arr[1]);
-                }
-            }
-        }
-    }
+    // protected function initOptions() {
+        // $options = $this->getOptionMetaData();
+        // if (!empty($options)) {
+            // foreach ($options as $key => $arr) {
+                // if (is_array($arr) && count($arr) > 1) {
+                    // $this->addOption($key, $arr[1]);
+                // }
+            // }
+        // }
+    // }
 
     public function getPluginDisplayName() {
         return 'WooTrack';
@@ -77,26 +77,54 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         return array(
             'service_preferences' => array(
                 'columns' => array(
-                    'service_code' => array(
+                    'id'            => array(
+                        'disp'  => false,
+                        'sql'   => 'INT NOT NULL AUTO_INCREMENT',
+                    )
+                    'code'  => array(
+                        'disp'  => true,
                         'name'  => 'Service Code',
-                        'sql'   => 'INT NOT NULL AUTO_INCREMENT',  
+                        'sql'   => 'CHAR(3)',
                     ),
-                    'service_name' => array (
+                    'name'  => array (
+                        'disp'  => true,
                         'name'  => 'Service Name',
                         'sql'   => 'VARCHAR(50)',
                     ),
-                    'price_adjustment' => array(
+                    'price_adj'     => array(
+                        'disp'  => true,
                         'name'  => 'Price Adjustment',
                         'sql'   => 'FLOAT'
                     ),
-                    'enabled' => array (
-                        'name' => 'Enabled',
-                        'sql'  => 'INT'
-                    ),
+                    // 'enabled'       => array (
+                        // 'name' => 'Enabled',
+                        // 'sql'  => 'INT'
+                    // ),
                 ),
                 'primary' => array(
-                    'service_code'
-                )
+                    'id'
+                ) 
+                // 'columns' => array(
+                    // 'service_code' => array(
+                        // 'name'  => 'Service Code',
+                        // 'sql'   => 'INT NOT NULL AUTO_INCREMENT',  
+                    // ),
+                    // 'service_name' => array (
+                        // 'name'  => 'Service Name',
+                        // 'sql'   => 'VARCHAR(50)',
+                    // ),
+                    // 'price_adjustment' => array(
+                        // 'name'  => 'Price Adjustment',
+                        // 'sql'   => 'FLOAT'
+                    // ),
+                    // 'enabled' => array (
+                        // 'name' => 'Enabled',
+                        // 'sql'  => 'INT'
+                    // ),
+                // ),
+                // 'primary' => array(
+                    // 'service_code'
+                // )
             )
         );
     }
@@ -144,6 +172,10 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
                 $wpdb->query( $sql );
         };
         //TODO: Assert tables exist
+        
+        //populate service preferences
+        
+        
     }
 
     /**
@@ -163,6 +195,11 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
             "DROP TABLE IF EXISTS " . Join(", ", $this->getWPTableNames()) 
         );
     }
+    
+    public function getTable($table){
+        $meta = $this->getTableMeta();
+        if(in_array($table, array_keys($meta))){
+            
 
 
     /**

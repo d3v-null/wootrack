@@ -14,6 +14,6 @@ function add_startrack_express( $methods ) {
 
 add_filter( 'woocommerce_shipping_methods', 'add_startrack_express' );
 
-error_log( "wootrack shipping registered" );
+//error_log( "wootrack shipping registered" );
 
 ?>
