@@ -138,19 +138,64 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         <?php echo ( ! empty( $this->method_description ) ) ? wpautop( $this->method_description ) : ''; ?>
         <table class="form-table">
         <?php
-            // Generate the HTML For the settings form.
+            // Generate the HTML for the settings form.
             $this->generate_settings_html();
+            
+            // Get available services from StarTrack
+            include_once('eServices/eServices.php');
+            include_once('eServices/CustomerConnect.php');
+
+            $connection = array(
+                'username'      => $this->username,
+                'password'      => $this->password,
+                'userAccessKey' => $this->access_key,
+                'qsdkFileSpec'  => $this->wsdl_file,
+            );
+                
+            $request = array(
+                'parameters' => array(
+                    'header' => array(
+                        'source'        => 'TEAM',
+                        'accountNo'     => $this->account_no,
+                        'userAccessKey' => $connection['userAccessKey']
+                    )
+                )
+            );
+            
+            try {
+                $oC = new STEeService();
+                $response = $oC->invokeWebService($connection,'getServiceCodes', $request);
+            }
+            catch (SoapFault $e) {
+                $response = false;
+                //TODO: add admin message: could not contact StarTrack eServices.
+            }
+            
+            $services = array();
+            if($response){
+                foreach($response->codes as $code) {
+                    if( $code->isDefault) {
+                        $services[] = array(
+                            $code->code, 
+                            $code->desc,
+                        )
+                    }
+                }
+            }
+            
+            // Generate the HTML for the service preferences form.
+            $prefs = $this->wootrack->getTable('service_preferences');
+            $pref_meta = $this->wootrack->getTableMeta()['service_preferences'];
             ?>
             <tr valign="top">
                 <th scope="row" class="titledesc"><?php __('Service preferences', 'wootrack');?></th>
                 <td class="forminp" id="<?php echo $this->id; ?>_services">
-                    <table cellspacing="0"><!-- no class -->
+                    <table class="service preferences" cellspacing="0">
                         <thead>
                             <tr>
                                 <th class="check-column"><input type="checkbox"></th>
                                 <?php
-                                    $columns = $wootrack->getTableMetadata()['service_preferences']['columns'];
-                                    foreach($columns as $column => $meta){
+                                    foreach($pref_meta['columns']; as $column => $meta){
                                         if($meta['display']){
                                             echo "<th class='".$column."'>".$meta['name']."</th>";
                                         }
@@ -161,8 +206,17 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                         <tfoot>
                             <tr>
                                 <th colspan=2>
+                                    <select name="add_service">
+                                        <option value="">Select a service</option>
+                                        <?php
+                                            foreach($services as $service){
+                                                //TODO: exclude options already in table
+                                                echo "<option value='".$service['code']."'>".$service['desc']."</option>";
+                                            }
+                                        ?>
+                                    </select>
                                     <a href="#" class="add button">
-                                        <?php '+ '.__('New service', 'wootrack'); ?>
+                                        <?php '+ '.__('Add service', 'wootrack'); ?>
                                     </a>
                                     <a href="#" class="remove button">
                                         <?php '- '.__('Remove selected services', 'wootrack'); ?>
@@ -172,14 +226,24 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                         </tfoot>
                         <tbody><!-- no class -->
                         <?php 
-                            //TODO: Autogenerate rows from db table
-                            
+                            foreach($prefs as $pref){
+                                echo "<tr class='service_preference'>";
+                                echo "    <td class='check-column'><input type='checkbox' name='select' /></td>";
+                                foreach($pref_meta['columns'] as $column => $meta){
+                                    if($pref['disp']){
+                                        echo "<td class='$column'  
+                                    }
+                                }
+                                echo "</tr>
                         ?>
                         </tbody>
-                    </table>
+                    </table><!--/.service-preferences-table-->
                 </td>
             </tr>
         </table><!--/.form-table-->
+        <script type="text/javascript">
+            jQuery(function() {
+                jQuery('#<?php echo 
         <?php
     }
     

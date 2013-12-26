@@ -77,32 +77,32 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         return array(
             'service_preferences' => array(
                 'columns' => array(
-                    'id'            => array(
-                        'disp'  => false,
-                        'sql'   => 'INT NOT NULL AUTO_INCREMENT',
-                    )
+                    // 'id'            => array(
+                        // 'disp'  => false,
+                        // 'sql'   => 'INT NOT NULL AUTO_INCREMENT',
+                    // )
                     'code'  => array(
                         'disp'  => true,
                         'name'  => 'Service Code',
-                        'sql'   => 'CHAR(3)',
+                        'sql'   => 'CHAR(3) NOT NULL',
                     ),
                     'name'  => array (
                         'disp'  => true,
                         'name'  => 'Service Name',
                         'sql'   => 'VARCHAR(50)',
                     ),
-                    'price_adj'     => array(
-                        'disp'  => true,
-                        'name'  => 'Price Adjustment',
-                        'sql'   => 'FLOAT'
-                    ),
+                    // 'price_adj'     => array(
+                        // 'disp'  => true,
+                        // 'name'  => 'Price Adjustment',
+                        // 'sql'   => 'FLOAT'
+                    // ),
                     // 'enabled'       => array (
                         // 'name' => 'Enabled',
                         // 'sql'  => 'INT'
                     // ),
                 ),
                 'primary' => array(
-                    'id'
+                    'code'
                 ) 
                 // 'columns' => array(
                     // 'service_code' => array(
@@ -196,10 +196,22 @@ class Wootrack_Plugin extends Wootrack_LifeCycle {
         );
     }
     
-    public function getTable($table){
-        $meta = $this->getTableMeta();
-        if(in_array($table, array_keys($meta))){
-            
+    
+    /**
+     * Fetches 
+     * See: http://plugin.michael-simpson.com/?page_id=35
+     * @return void
+     */
+    public function getTable($tableName){
+        if(in_array($tableName, array_keys($this->getTableMeta()))){
+            global $wpdb;
+            return $wpdb->get_results(
+                "SELECT * FROM ".$this->prefixTableName($tableName)
+            );
+        }
+        //TODO: throw exception instead
+        else return array();
+    }
 
 
     /**
