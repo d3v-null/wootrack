@@ -36,16 +36,21 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
         
-        $this->enabled      = $this->get_option( 'enabled' );
-        $this->account_no   = $this->get_option( 'account_no' );
-        $this->access_key   = $this->get_option( 'access_key' );
-        $this->username     = $this->get_option( 'username' );
-        $this->password     = $this->get_option( 'password' );
-        $this->wsdl_file    = $this->get_option( 'wsdl_file' );
-        // TODO: get sender's location
+        $this->enabled      = $this->get_option( 'enabled'      );
+        $this->account_no   = $this->get_option( 'account_no'   );
+        $this->access_key   = $this->get_option( 'access_key'   );
+        $this->username     = $this->get_option( 'username'     );
+        $this->password     = $this->get_option( 'password'     );
+        $this->wsdl_file    = $this->get_option( 'wsdl_file'    );
+        $this->sender_addr  = $this->get_option( 'sender_addr'  );
+        $this->sender_suburb= $this->get_option( 'sender_suburb');
+        $this->sender_pcode = $this->get_option( 'sender_pcode' );
+        $this->sender_state = $this->get_option( 'sender_state' );
+        
+        // TODO: validate service preferences
         
         // TODO: get service preferences
-
+                
     }
     
     /**
@@ -95,7 +100,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'description'   => 'Location of the WSDL XML file',                
                 'default'       => 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
             ),
-            'sender_address'=> array(
+            'sender_addr'   => array(
                 // 'class'         => 'Sender\'s location',            
                 'title'         => __('Sender\'s Address', 'wootrack'),
                 'type'          => 'text',
@@ -175,10 +180,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             if($response){
                 foreach($response->codes as $code) {
                     if( $code->isDefault) {
-                        $services[] = array(
-                            $code->code, 
-                            $code->desc,
-                        )
+                        $services[$code->code] =$code->desc;
                     }
                 }
             }
@@ -187,31 +189,34 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $prefs = $this->wootrack->getTable('service_preferences');
             $pref_meta = $this->wootrack->getTableMeta()['service_preferences'];
             ?>
+            
             <tr valign="top">
-                <th scope="row" class="titledesc"><?php __('Service preferences', 'wootrack');?></th>
+                <th scope="row" class="titledesc"><?php __('Service preferences', 'wootrack'); ?></th>
                 <td class="forminp" id="<?php echo $this->id; ?>_services">
                     <table class="service preferences" cellspacing="0">
                         <thead>
                             <tr>
                                 <th class="check-column"><input type="checkbox"></th>
+                                <th class="service_code"><?php __('Service Code', 'wootrack'); ?></th>
+                                <th class="service_name"><?php __('Serbice Name', 'wootrack'); ?></th>
                                 <?php
-                                    foreach($pref_meta['columns']; as $column => $meta){
-                                        if($meta['display']){
-                                            echo "<th class='".$column."'>".$meta['name']."</th>";
-                                        }
-                                    }
+                                    // foreach($pref_meta['columns']; as $column => $meta){
+                                        // if($meta['display']){
+                                            // echo "<th class='".$column."'>".$meta['name']."</th>";
+                                        // }
+                                    // }
                                 ?>
                             </tr>
                         </thead>
                         <tfoot>
                             <tr>
                                 <th colspan=2>
-                                    <select name="add_service">
+                                    <select id="select_service">
                                         <option value="">Select a service</option>
                                         <?php
-                                            foreach($services as $service){
+                                            foreach($services as $code => $desc){
                                                 //TODO: exclude options already in table
-                                                echo "<option value='".$service['code']."'>".$service['desc']."</option>";
+                                                echo "<option value='$code'>$desc</option>";
                                             }
                                         ?>
                                     </select>
@@ -224,18 +229,22 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                                 </th>
                             </tr>
                         </tfoot>
-                        <tbody><!-- no class -->
+                        <tbody>
                         <?php 
-                            foreach($prefs as $pref){
-                                echo "<tr class='service_preference'>";
-                                echo "    <td class='check-column'><input type='checkbox' name='select' /></td>";
-                                foreach($pref_meta['columns'] as $column => $meta){
-                                    if($pref['disp']){
-                                        echo "<td class='$column'  
-                                    }
-                                }
-                                echo "</tr>
+                        foreach($prefs as $pref){
                         ?>
+                            <tr class="service">
+                                <td class="check-column"><input type="checkbox" name="select" /></td>
+                                <td class="service_code"><?php echo pref['code']; ?></td>
+                                <td class="service_name"><?php echo pref['name']; ?></td>
+                                <?php 
+                                    // foreach($pref_meta['columns'] as $column => $meta){
+                                        // if($meta['disp']){
+                                            // echo "<td class='service_$column'>".$pref[$column]."</td>"  
+                                        // }
+                                    // }
+                                ?>
+                            </tr>
                         </tbody>
                     </table><!--/.service-preferences-table-->
                 </td>
@@ -243,7 +252,40 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         </table><!--/.form-table-->
         <script type="text/javascript">
             jQuery(function() {
-                jQuery('#<?php echo 
+                // Add service
+                jQuery('#<?php echo $this->id; ?>_services').on( 'click', 'a.add', function(){
+                    var s = document.getElementById("select_service");
+                    var s_code = s.options[s.selectedIndex].value;
+                    var s_name = s.options[s.selectedIndex].text;
+                    
+                    //TODO: check that code is not already in table
+                    
+                    if( s.localeCompare("") != 0 ){                    
+                        jQuery('\
+                            <tr class="service">\
+                                <td class="check-column"><input type="checkbox" name="select" /></td>\
+                                <td class="service_code">' + s_code + '</td>\
+                                <td class="service_name">' + s_name + '</td>\
+                            </tr>'
+                        ).appendTo('#<?php echo $this->id; ?>_services table tbody');
+                    }
+                    
+                    return false;
+                });
+                
+                // Remove service
+                jQuery('#<?php echo $this->id; ?>_services').on( 'click', 'a.remove', function(){
+                    var answer = confirm("<?php __('Are you sure you want to delete the selected rates?', 'wootrack'); ?>" );
+                    if(answer) {
+                        jQuery('#<?php echo $this->id; ?>_services table tbody tr td.check-column input:checked').each(function(i, el){
+                            jQuery(el).closest('tr').remove();
+                        });
+                    }
+                    
+                    return false;
+                });
+            });
+        </script>
         <?php
     }
     
@@ -261,89 +303,88 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      */
     public function calculate_shipping( $package ) {
 
-        If(WP_DEBUG) error_log('here comes the package:');
-        //error_log(strtr(serialize($package),array(';'=>";\n",'{'=>"{\n",'}'=>"\n}\n")));
+        // If(WP_DEBUG) error_log('here comes the package:');
+        // //error_log(strtr(serialize($package),array(';'=>";\n",'{'=>"{\n",'}'=>"\n}\n")));
 
-        If(WP_DEBUG) error_log("-> contents:");
-        foreach($package['contents'] as $k => $v){
-            If(WP_DEBUG) error_log(
-                '    ' . implode(', ',
-                    array(
-                        $v['product_id'],
-                        $v['variation_id'],
-                        $v['quantity']
-                    )
-                )
-            );
-        }
+        // If(WP_DEBUG) error_log("-> contents:");
+        // foreach($package['contents'] as $k => $v){
+            // If(WP_DEBUG) error_log(
+                // '    ' . implode(', ',
+                    // array(
+                        // $v['product_id'],
+                        // $v['variation_id'],
+                        // $v['quantity']
+                    // )
+                // )
+            // );
+        // }
 
-        If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
+        // If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
 
 
         // $oConnect = new ConnectDetails();
         // $connection = $oConnect->getConnectDetails();
         
-        $connection = array(
-            'username'      => $this->get_option('Username'),
-            'password'      => $this->get_option('Password'),
-            'userAccessKey' => $this->get_option('AccessKey'),
-            'wsdlFilespec'  => $this->get_option('wsdlFile')   
-        );
         
-        $request = array(
-            'parameters' => array(
-                'header' => array(
-                    'source'        => 'TEAM',
-                    // 'accountNo'     => '12345',
-                    'userAccessKey' => $connection['userAccessKey']
-                )
-            )
-        );
-        $oC = new STEeService();
-        $response = $oC->invokeWebService($connection, 'getServiceCodes', $request);
+        // $request = array(
+            // 'parameters' => array(
+                // 'header' => array(
+                    // 'source'        => 'TEAM',
+                    // // 'accountNo'     => '12345',
+                    // 'userAccessKey' => $connection['userAccessKey']
+                // )
+            // )
+        // );
+        // $oC = new STEeService();
+        // $response = $oC->invokeWebService($connection, 'getServiceCodes', $request);
     
-        If(WP_DEBUG) error_log("here come the codes: ");
+        // If(WP_DEBUG) error_log("here come the codes: ");
+        $connection = array(
+            'username'      => $this->username,
+            'password'      => $this->password,
+            'userAccessKey' => $this->access_key,
+            'qsdkFileSpec'  => $this->wsdl_file,
+        );
 
-        foreach($response->codes as $k => $v) {
-            if($v->isDefault){
-                If(WP_DEBUG){
-                    error_log(
-                        '    '.
-                        implode(
-                            ', ', 
-                            array(
-                                $v->serviceCode, 
-                                $v->serviceDescription
-                            )
-                        )
-                    );
-                }
+        foreach($this->service_preferences as $code => $preferences) {
+            // if($v->isDefault){
+                // If(WP_DEBUG){
+                    // error_log(
+                        // '    '.
+                        // implode(
+                            // ', ', 
+                            // array(
+                                // $v->serviceCode, 
+                                // $v->serviceDescription
+                            // )
+                        // )
+                    // );
+                // }
             
-            
-                    
-                // $request = array(
-                    // 'parameters' => array(
-                        // 'header' => array(
-                            // 'source'        => 'TEAM',
-                            // 'accountNo'     => '12345',
-                            // 'userAccessKey' => $connection['userAccessKey']
-                        // ),
-                        // 'senderLocation' => array(
-                            // 'suburb' => $_POST['suburbSender'],
-                            // 'postCode' => $_POST['postCodeSender'],
-                            // 'state' => strtoupper($_POST['stateSender'])		// Must be upper case
-                        // ),
-                        // 'receiverLocation' => array(
-                            // 'suburb' => $_POST['suburbReceiver'],
-                            // 'postCode' => $_POST['postCodeReceiver'],
-                            // 'state' => strtoupper($_POST['stateReceiver'])	// Must be upper case
-                        // ),
-                        // 'serviceCode' => $v->serviceCode,
-                        // 'noOfItems' => $_POST['noOfItems'],
-                        // 'weight' => $_POST['weight'],
-                        // 'volume' => $_POST['volume']
-                    // )
-                // );
+                                
+            // $request = array(
+                // 'parameters' => array(
+                    // 'header' => array(
+                        // 'source'        => 'TEAM',
+                        // 'accountNo'     => $this->account_no,
+                        // 'userAccessKey' => $connection['userAccessKey']
+                    // ),
+                    // 'senderLocation' => array(
+                        // 'suburb' => $_POST['suburbSender'],
+                        // 'postCode' => $_POST['postCodeSender'],
+                        // 'state' => strtoupper($_POST['stateSender'])		// Must be upper case
+                    // ),
+                    // 'receiverLocation' => array(
+                        // 'suburb' => $_POST['suburbReceiver'],
+                        // 'postCode' => $_POST['postCodeReceiver'],
+                        // 'state' => strtoupper($_POST['stateReceiver'])	// Must be upper case
+                    // ),
+                    // 'serviceCode' => $v->serviceCode,
+                    // 'noOfItems' => $_POST['noOfItems'],
+                    // 'weight' => $_POST['weight'],
+                    // 'volume' => $_POST['volume']
+                // )
+            // );
 
 
 
