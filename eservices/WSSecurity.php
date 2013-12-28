@@ -112,7 +112,7 @@ $passwordDigest = base64_encode(pack('H*', sha1(pack('H*', $nonce) . pack('a*', 
 		}
 		catch (SoapFault $e)
 		{
-			throw new SoapFault($e->faultcode, $e->faultstring, NULL, $e->detail);
+			throw new SoapFault($e->faultcode, $e->faultstring, NULL, '');//$e->detail);
 		}
 	}
 	

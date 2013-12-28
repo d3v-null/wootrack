@@ -16,10 +16,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
         $this->enabled              = "yes"; // This can be added as an setting but for this example its forced enabled
         $this->title                = "StarTrack Express"; // This can be added as an setting but for this example its forced.
+        
+        $this->service_pref_option  = $this->id.'_service_preferences';
 
         // Save settings in admin if you have any defined
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-        // add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_service_preferences' ) );
+        add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_service_preferences' ) );
         
         
         $this->init();
@@ -42,11 +44,23 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->username     = $this->get_option( 'username'     );
         $this->password     = $this->get_option( 'password'     );
         $this->wsdl_file    = $this->get_option( 'wsdl_file'    );
-        $this->sender_addr  = $this->get_option( 'sender_addr'  );
-        $this->sender_suburb= $this->get_option( 'sender_suburb');
         $this->sender_pcode = $this->get_option( 'sender_pcode' );
-        $this->sender_state = $this->get_option( 'sender_state' );
+        // $this->sender_addr  = $this->get_option( 'sender_addr'  );
+        // $this->sender_suburb= $this->get_option( 'sender_suburb');
+        // $this->sender_state = $this->get_option( 'sender_state' );
         
+        $this->connection   = array(
+            'username'      => $this->username,
+            'password'      => $this->password,
+            'userAccessKey' => $this->access_key,
+            'wsdlFilespec'  => $this->wsdl_file,
+        );
+        $this->header = array(
+            'source'        => 'TEAM',
+            'accountNo'     => $this->account_no,
+            'userAccessKey' => $this->connection['userAccessKey']
+        );
+
         // TODO: validate service preferences
         
         // TODO: get service preferences
@@ -97,37 +111,39 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             'wsdl_file'     => array(
                 'title'         => __('WSDL File Spec', 'wootrack'),
                 'type'          => 'text',
-                'description'   => 'Location of the WSDL XML file',                
+                'description'   => __('Location of the WSDL XML file', 'wootrack'),         
+                'desc_tip'      => true,
                 'default'       => 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
             ),
-            'sender_addr'   => array(
-                // 'class'         => 'Sender\'s location',            
-                'title'         => __('Sender\'s Address', 'wootrack'),
-                'type'          => 'text',
-                // 'description'   => 'Location of the WSDL XML file',                
-                'default'       => 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
-            ),                
-            'sender_suburb' => array(
-                // 'class'         => 'Sender\'s location',
-                'title'         => __('Sender\'s Suburb', 'wootrack'),
-                'type'          => 'text',
-                // 'description'   => '',
-                'default'       => ''
-            ),
+            // 'sender_addr'   => array(
+                // // 'class'         => 'Sender\'s location',            
+                // 'title'         => __('Sender\'s Address', 'wootrack'),
+                // 'type'          => 'text',
+                // // 'description'   => 'Location of the WSDL XML file',                
+                // 'default'       => ''
+            // ),                
+            // 'sender_suburb' => array(
+                // // 'class'         => 'Sender\'s location',
+                // 'title'         => __('Sender\'s Suburb', 'wootrack'),
+                // 'type'          => 'text',
+                // // 'description'   => '',
+                // 'default'       => ''
+            // ),
             'sender_pcode'  => array(
                 // 'class'         => 'Sender\'s location',
                 'title'         => __('Sender\'s Post Code', 'wootrack'),
                 'type'          => 'text',
-                // 'description'   => '',                
+                'description'   => __('Postcode of the location packages are dispatched from', 'wootrack'),
+                'desc_tip'      => true,                
                 'default'       => ''
             ),
-            'sender_state'  => array(
-                // 'class'         => 'Sender\'s location',
-                'title'         => __('Sender\'s State', 'wootrack'),
-                'type'          => 'text',
-                // 'description'   => '',                
-                'default'       => ''
-            )
+            // 'sender_state'  => array(
+                // // 'class'         => 'Sender\'s location',
+                // 'title'         => __('Sender\'s State', 'wootrack'),
+                // 'type'          => 'text',
+                // // 'description'   => '',                
+                // 'default'       => ''
+            // )
         );
     }
     
@@ -149,27 +165,18 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             // Get available services from StarTrack
             include_once('eServices/eServices.php');
             include_once('eServices/CustomerConnect.php');
-
-            $connection = array(
-                'username'      => $this->username,
-                'password'      => $this->password,
-                'userAccessKey' => $this->access_key,
-                'wsdlFilespec'  => $this->wsdl_file,
-            );
-                
-            $request = array(
-                'parameters' => array(
-                    'header' => array(
-                        'source'        => 'TEAM',
-                        'accountNo'     => $this->account_no,
-                        'userAccessKey' => $connection['userAccessKey']
-                    )
-                )
-            );
             
             try {
                 $oC = new STEeService();
-                $response = $oC->invokeWebService($connection,'getServiceCodes', $request);
+                $response = $oC->invokeWebService(
+                    $this->connection,
+                    'getServiceCodes',
+                    array(
+                        'parameters' => array(
+                            'header' => $this->header
+                        )
+                    )
+                );
             }
             catch (SoapFault $e) {
                 $response = false;
@@ -186,15 +193,15 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
             
             // Generate the HTML for the service preferences form.
-            $prefs = $this->wootrack->getTable('service_preferences');
-            IF(WP_DEBUG) error_log(serialize($prefs));
+            // $prefs = $this->wootrack->getTable('service_preferences');
+            $prefs = get_option($this->service_pref_option, false);
             
             ?>
             
             <tr valign="top">
                 <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
                 <td class="forminp" id="<?php echo $this->id; ?>_services">
-                    <table class="service preferences" cellspacing="0">
+                    <table class="shippingrows widefat" cellspacing="0">
                         <thead>
                             <tr>
                                 <th class="check-column"><input type="checkbox"></th>
@@ -214,19 +221,29 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                                             }
                                         ?>
                                     </select>
-                                    <a href="#" class="add button"> <?php _e('Add service', 'wootrack'); ?></a>
-                                    <a href="#" class="remove button"><?php _e('Remove selected services', 'wootrack'); ?></a>
+                                    <a class="add button"> <?php _e('Add service', 'wootrack'); ?></a>
+                                    <a class="remove button"><?php _e('Remove selected services', 'wootrack'); ?></a>
                                 </th>
                             </tr>
                         </tfoot>
                         <tbody>
                         <?php 
-                        foreach($prefs as $pref){
+                        $i = -1;
+                        if($prefs) foreach($prefs as $code => $name){
+                            $i++;
                         ?>
                             <tr class="service">
-                                <td class="check-column"><input type="checkbox" name="select" /></td>
-                                <td class="service_code"><?php echo $pref->code; ?></td>
-                                <td class="service_name"><?php echo $pref->name; ?></td>
+                                <td class="check-column">
+                                    <input type="checkbox" name="select" />
+                                </td>
+                                <td class="service_code">
+                                    <input type="text" value="<?php echo $code; ?>" readonly="readonly"
+                                           name="<?php echo esc_attr( $this->id.'_code['.$i.']' ); ?>" />                                    
+                                </td>
+                                <td class="service_name">
+                                    <input type="text" value="<?php echo $name; ?>"
+                                           name="<?php echo esc_attr( $this->id.'_name['.$i.']' ); ?>" />
+                                </td>
                             </tr>
                         <?php 
                         } 
@@ -240,18 +257,28 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             jQuery(function() {
                 // Add service
                 jQuery('#<?php echo $this->id; ?>_services').on( 'click', 'a.add', function(){
+                    var size = jQuery('#<?php echo $this->id; ?>_services tbody .service').size();
+                    
                     var s = document.getElementById("select_service");
                     var s_code = s.options[s.selectedIndex].value;
                     var s_name = s.options[s.selectedIndex].text;
                     
                     //TODO: check that code is not already in table
                     
-                    if( s.localeCompare("") != 0 ){                    
+                    if( s_code.localeCompare("") != 0 ){          
                         jQuery('\
                             <tr class="service">\
-                                <td class="check-column"><input type="checkbox" name="select" /></td>\
-                                <td class="service_code">' + s_code + '</td>\
-                                <td class="service_name">' + s_name + '</td>\
+                                <td class="check-column">\
+                                    <input type="checkbox" name="select" />\
+                                </td>\
+                                <td class="service_code">\
+                                    <input type="text" value="' + s_code + '" readonly="readonly"\
+                                           name="<?php echo $this->id; ?>_code[' + size + ']" />\
+                                </td>\
+                                <td class="service_name">\
+                                    <input type="text" value="' + s_name + '"\
+                                           name="<?php echo $this->id; ?>_name[' + size + ']" />\
+                                </td>\
                             </tr>'
                         ).appendTo('#<?php echo $this->id; ?>_services table tbody');
                     }
@@ -273,12 +300,31 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             });
         </script>
         <?php
-    }
+    }          
+ 
+    function process_service_preferences() {
+        $service_pref_code  = array();
+        $service_pref_name  = array();
+        $service_prefs      = array();
+        
+        if( isset( $_POST[ $this->id . '_code'] ) ) $service_pref_code = array_map( 'woocommerce_clean', $_POST[ $this->id.'_code'] );
+        if( isset( $_POST[ $this->id . '_name'] ) ) $service_pref_name = array_map( 'woocommerce_clean', $_POST[ $this->id.'_name'] );
+        
+        foreach($service_pref_code as $key => $code){
+            $service_prefs[$code] = $service_pref_name[$key];
+        }
+        
+        update_option($this->service_pref_option, $service_prefs);
+    }    
     
-    //TODO: write process_shipping_preferences
-    // public function process_shipping_preferences() {
-    // }    
+    //TODO: postcode and username validation
     
+    public function calculateWeightVolume($contents){
+        $total weight
+        $total volume
+        foreach($contets as $line){
+            $wv = lookupWV($line[
+        
     
     /**
      * calculate_shipping function.
@@ -306,82 +352,103 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         // }
 
         // If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
-
-
-        // $oConnect = new ConnectDetails();
-        // $connection = $oConnect->getConnectDetails();
         
+        $destination = $package['destination'];
         
-        // $request = array(
-            // 'parameters' => array(
-                // 'header' => array(
-                    // 'source'        => 'TEAM',
-                    // // 'accountNo'     => '12345',
-                    // 'userAccessKey' => $connection['userAccessKey']
-                // )
-            // )
-        // );
-        // $oC = new STEeService();
-        // $response = $oC->invokeWebService($connection, 'getServiceCodes', $request);
-    
-        // If(WP_DEBUG) error_log("here come the codes: ");
-        $connection = array(
-            'username'      => $this->username,
-            'password'      => $this->password,
-            'userAccessKey' => $this->access_key,
-            'qsdkFileSpec'  => $this->wsdl_file,
-        );
-
-        foreach($this->service_preferences as $code => $preferences) {
-            // if($v->isDefault){
-                // If(WP_DEBUG){
-                    // error_log(
-                        // '    '.
-                        // implode(
-                            // ', ', 
-                            // array(
-                                // $v->serviceCode, 
-                                // $v->serviceDescription
-                            // )
-                        // )
-                    // );
-                // }
+        if($destination['country'] == 'AU'){
+        
+            $senderLocation = array(
+                // 'addressLine'   => $this->sender_addr,
+                // 'suburb'        => $this->sender_suburb,
+                'postCode'      => $this->sender_pcode,
+                // 'state'         => strtoupper($this->sender_state)
+            );
+            $receiverLocation = array(
+                'addressLine'   => $destination['address'],
+                'suburb'        => $destination['city'],
+                'postCode'      => $destination['postcode'],
+                'state'         => strtoupper($destination['state'])
+            );
             
-                                
-            // $request = array(
-                // 'parameters' => array(
-                    // 'header' => array(
-                        // 'source'        => 'TEAM',
-                        // 'accountNo'     => $this->account_no,
-                        // 'userAccessKey' => $connection['userAccessKey']
-                    // ),
-                    // 'senderLocation' => array(
-                        // 'suburb' => $_POST['suburbSender'],
-                        // 'postCode' => $_POST['postCodeSender'],
-                        // 'state' => strtoupper($_POST['stateSender'])		// Must be upper case
-                    // ),
-                    // 'receiverLocation' => array(
-                        // 'suburb' => $_POST['suburbReceiver'],
-                        // 'postCode' => $_POST['postCodeReceiver'],
-                        // 'state' => strtoupper($_POST['stateReceiver'])	// Must be upper case
-                    // ),
-                    // 'serviceCode' => $v->serviceCode,
-                    // 'noOfItems' => $_POST['noOfItems'],
-                    // 'weight' => $_POST['weight'],
-                    // 'volume' => $_POST['volume']
-                // )
-            // );
-
-
-
-
-                // $this->add_rate(
-                    // $cost
-                    // array(
-                        // 'id'    => $v->serviceCode,
-                        // 'label' => $v->serviceDescription,
-                        // '
+            // Validate sender location - todo: move this to settings validation
+            $request = array(
+                'parameters' => array(
+                    'header'        => $this->header,
+                    'address'       => $senderLocation
+                )
+            );
+            try {
+                $oC = new STEeService();
+                $response = $oC->invokeWebService($this->connection,'validateAddress', $request);
+                
+                //fill in sender location with first matched location
+                if($response->matchedAddress) {
+                    $senderLocation['suburb']   = $response->matchedAddress[0]->suburbOrLocation;
+                    $senderLocation['state']    = $response->matchedAddress[0]->state;
+                }   
+            }
+            catch (SoapFault $e) {
+                $response = false;
+                //TODO: add admin message: could not contact StarTrack eServices.
+            }            
             
+            If(WP_DEBUG) error_log( serialize($response) );     
+            
+            // Validate receiver location
+            $request = array(
+                'parameters' => array(
+                    'header'        => $this->header,
+                    'address'       => $receiverLocation
+                )
+            );
+            try {
+                $oC = new STEeService();
+                $response = $oC->invokeWebService($this->connection,'validateAddress', $request);
+            }
+            catch (SoapFault $e) {
+                $response = false;
+                //TODO: add admin message: could not contact StarTrack eServices.
+            }            
+            
+            If(WP_DEBUG) error_log( serialize($response) ); 
+            
+            $prefs = get_option($this->service_pref_option, false);
+
+            foreach($prefs as $code => $name) {                                
+                $request = array(
+                    'parameters' => array(
+                        'header'            => $this->header,
+                        'senderLocation'    => $senderLocation,
+                        'receiverLocation'  => $receiverLocation,
+                        'serviceCode'       => $code,
+                        //TODO: calculate these
+                        'noOfItems'         => 1, 
+                        'weight'            => 5,
+                        'volume'            => 1
+                    )
+                );
+
+                try {
+                    $oC = new STEeService();
+                    $response = $oC->invokeWebService($this->connection,'calculateCost', $request);
+                    $this->add_rate(
+                        array(
+                            'id'        => $code,
+                            'label'     => $name,
+                            'cost'      => $response->cost,
+                            'calc_tax'  => 'per_item'
+                        )
+                    );
+                }
+                catch (SoapFault $e) {
+                    $response = false;
+                    If(WP_DEBUG) error_log( "Exception in calculateCost, " . $e );
+                    //TODO: add admin message: could not contact StarTrack eServices.
+                }
+                
+                If(WP_DEBUG) error_log( "response: \n".serialize($response) );
+                // If(WP_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
+            }
         }
 
         $rate = array(
