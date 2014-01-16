@@ -44,7 +44,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->username     = $this->get_option( 'username'     );
         $this->password     = $this->get_option( 'password'     );
         $this->wsdl_file    = $this->get_option( 'wsdl_file'    );
-        $this->sender_pcode = $this->get_option( 'sender_pcode' );
         // $this->sender_addr  = $this->get_option( 'sender_addr'  );
         // $this->sender_suburb= $this->get_option( 'sender_suburb');
         // $this->sender_state = $this->get_option( 'sender_state' );
@@ -60,11 +59,35 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             'accountNo'     => $this->account_no,
             'userAccessKey' => $this->connection['userAccessKey']
         );
-
-        // TODO: validate service preferences
-        
-        // TODO: get service preferences
-                
+        $this->sender_location = array(
+			'postCode' 		=> $this->get_option( 'sender_pcode' ),
+			'state'         => "",
+			'suburb'        => "",
+		);
+		
+		// Validate sender location
+		$request = array(
+			'parameters' => array(
+				'header'    => $this->header,
+				'address'   => $this->sender_location,
+			)
+		);
+		try {
+			$oC = new STEeService();
+			$response = $oC->invokeWebService($this->connection,'validateAddress', $request);
+			
+			//fill in sender location with first matched location
+			if($response->matchedAddress) {
+				$this->sender_location['suburb'] = $response->matchedAddress[0]->suburbOrLocation;
+				$this->sender_location['state']  = $response->matchedAddress[0]->state;
+			}   
+		}
+		catch (SoapFault $e) {
+			$response = false;
+			//TODO: add admin message: could not contact StarTrack eServices.
+		}       		
+		
+		
     }
     
     /**
@@ -133,7 +156,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 // 'class'         => 'Sender\'s location',
                 'title'         => __('Sender\'s Post Code', 'wootrack'),
                 'type'          => 'text',
-                'description'   => __('Postcode of the location packages are dispatched from', 'wootrack'),
+                'description'   => __('Postcode of the location which packages are dispatched from', 'wootrack'),
                 'desc_tip'      => true,                
                 'default'       => ''
             ),
@@ -197,6 +220,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $prefs = get_option($this->service_pref_option, false);
             
             ?>
+			
+			<tr valign="top">
+				<th><?php _e('Matched Suburb', 'wootrack'); ?></th>
+				<td><?php echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] ); ?></td>
+			</tr>
+			
             
             <tr valign="top">
                 <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
@@ -371,48 +400,40 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             // );
         // }
 
-        // If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
+        If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
         
         $destination = $package['destination'];
         
         if($destination['country'] == 'AU'){
-        
-            $senderLocation = array(
-                // 'addressLine'   => $this->sender_addr,
-                // 'suburb'        => $this->sender_suburb,
-                'postCode'      => $this->sender_pcode,
-                // 'state'         => strtoupper($this->sender_state)
-            );
+
+			// Validate sender location
+			// $request = array(
+				// 'parameters' => array(
+					// 'header'    => $this->header,
+					// 'address'   => $this->sender_location,
+				// )
+			// );
+			// try {
+				// $oC = new STEeService();
+				// $response = $oC->invokeWebService($this->connection,'validateAddress', $request);
+				
+				// //fill in sender location with first matched location
+				// if($response->matchedAddress) {
+				// }   
+			// }
+			// catch (SoapFault $e) {
+				// $response = false;
+				// //TODO: add admin message: could not contact StarTrack eServices.
+			// }            
+			
+			// If(WP_DEBUG) error_log( "Validating sender location: \n".serialize($response) );     
+					
             $receiverLocation = array(
-                'addressLine'   => $destination['address'],
-                'suburb'        => $destination['city'],
+                // 'addressLine'   => $destination['address'],
+                // 'suburb'        => $destination['city'],
                 'postCode'      => $destination['postcode'],
                 'state'         => strtoupper($destination['state'])
             );
-            
-            // Validate sender location - todo: move this to settings validation
-            $request = array(
-                'parameters' => array(
-                    'header'        => $this->header,
-                    'address'       => $senderLocation
-                )
-            );
-            try {
-                $oC = new STEeService();
-                $response = $oC->invokeWebService($this->connection,'validateAddress', $request);
-                
-                //fill in sender location with first matched location
-                if($response->matchedAddress) {
-                    $senderLocation['suburb']   = $response->matchedAddress[0]->suburbOrLocation;
-                    $senderLocation['state']    = $response->matchedAddress[0]->state;
-                }   
-            }
-            catch (SoapFault $e) {
-                $response = false;
-                //TODO: add admin message: could not contact StarTrack eServices.
-            }            
-            
-            If(WP_DEBUG) error_log( serialize($response) );     
             
             // Validate receiver location
             $request = array(
@@ -424,13 +445,16 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             try {
                 $oC = new STEeService();
                 $response = $oC->invokeWebService($this->connection,'validateAddress', $request);
+				
+				$receiverLocation['suburb'] = $response->matchedAddress[0]->suburbOrLocation;
+				$receiverLocation['state']  = $response->matchedAddress[0]->state;
             }
             catch (SoapFault $e) {
                 $response = false;
                 //TODO: add admin message: could not contact StarTrack eServices.
             }            
             
-            If(WP_DEBUG) error_log( serialize($response) ); 
+            If(WP_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
             
             $prefs = get_option($this->service_pref_option, false);
             
@@ -441,15 +465,21 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                     $request = array(
                         'parameters' => array(
                             'header'            => $this->header,
-                            'senderLocation'    => $senderLocation,
+                            'senderLocation'    => $this->sender_location,
                             'receiverLocation'  => $receiverLocation,
                             'serviceCode'       => $code,
                             'noOfItems'         => $params['noOfItems'], 
-                            'weight'            => $params['weight'   ],
+							// TODO uncomment these
+                            // 'weight'            => $params['weight'   ],
+                            'weight'            => 5.0,
                             //THIS IS IN CM
-                            'volume'            => $params['volume'   ],
+                            // 'volume'            => $params['volume'   ],
+                            'volume'            => 0.01,
                         )
                     );
+					
+					If(WP_DEBUG) error_log( "request: \n".serialize($request) );
+					If(WP_DEBUG) error_log( "connection: \n".serialize($this->connection) );
 
                     try {
                         $oC = new STEeService();
