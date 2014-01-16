@@ -319,11 +319,31 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     
     //TODO: postcode and username validation
     
-    public function calculateWeightVolume($contents){
-        $total weight
-        $total volume
-        foreach($contets as $line){
-            $wv = lookupWV($line[
+    public function calculateShippingParams($contents){
+        $params = array(
+            'weight'    => 0,
+            'volume'    => 0,
+            'noOfItems' => 1,
+        );
+        foreach($contents as $line){
+            if($line['data']->has_weight()){
+                $params['weight'] += $line['quantity'] * $line['data']->get_weight();
+            } else {
+                // throw exception because can't get weight
+            }
+            if($line['data']->has_dimensions()){
+                $dimensions = explode(' x ', $line['data']->get_dimensions());
+                $dimensions[2] = str_replace( ' '.get_option( 'woocommerce_dimension_unit' ), '', $dimensions[2]); 
+                $params['volume'] += $line['quantity'] * array_product( $dimensions );
+            } else {
+                // throw exception because can't get dimensions
+            }
+        }
+        
+        If(WP_DEBUG) error_log( "Shipping params: \n".serialize($params) );
+        
+        return $params;
+    }
         
     
     /**
@@ -413,41 +433,45 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             If(WP_DEBUG) error_log( serialize($response) ); 
             
             $prefs = get_option($this->service_pref_option, false);
+            
+            if($prefs) {
+                $params = $this->calculateShippingParams($package['contents']);
 
-            foreach($prefs as $code => $name) {                                
-                $request = array(
-                    'parameters' => array(
-                        'header'            => $this->header,
-                        'senderLocation'    => $senderLocation,
-                        'receiverLocation'  => $receiverLocation,
-                        'serviceCode'       => $code,
-                        //TODO: calculate these
-                        'noOfItems'         => 1, 
-                        'weight'            => 5,
-                        'volume'            => 1
-                    )
-                );
-
-                try {
-                    $oC = new STEeService();
-                    $response = $oC->invokeWebService($this->connection,'calculateCost', $request);
-                    $this->add_rate(
-                        array(
-                            'id'        => $code,
-                            'label'     => $name,
-                            'cost'      => $response->cost,
-                            'calc_tax'  => 'per_item'
+                foreach($prefs as $code => $name) {                                
+                    $request = array(
+                        'parameters' => array(
+                            'header'            => $this->header,
+                            'senderLocation'    => $senderLocation,
+                            'receiverLocation'  => $receiverLocation,
+                            'serviceCode'       => $code,
+                            'noOfItems'         => $params['noOfItems'], 
+                            'weight'            => $params['weight'   ],
+                            //THIS IS IN CM
+                            'volume'            => $params['volume'   ],
                         )
                     );
+
+                    try {
+                        $oC = new STEeService();
+                        $response = $oC->invokeWebService($this->connection,'calculateCost', $request);
+                        $this->add_rate(
+                            array(
+                                'id'        => $code,
+                                'label'     => $name,
+                                'cost'      => $response->cost,
+                                'calc_tax'  => 'per_item'
+                            )
+                        );
+                    }
+                    catch (SoapFault $e) {
+                        $response = false;
+                        If(WP_DEBUG) error_log( "Exception in calculateCost, " . $e );
+                        //TODO: add admin message: could not contact StarTrack eServices.
+                    }
+                    
+                    If(WP_DEBUG) error_log( "response: \n".serialize($response) );
+                    // If(WP_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
                 }
-                catch (SoapFault $e) {
-                    $response = false;
-                    If(WP_DEBUG) error_log( "Exception in calculateCost, " . $e );
-                    //TODO: add admin message: could not contact StarTrack eServices.
-                }
-                
-                If(WP_DEBUG) error_log( "response: \n".serialize($response) );
-                // If(WP_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
             }
         }
 
