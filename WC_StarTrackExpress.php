@@ -54,11 +54,15 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             'userAccessKey' => $this->access_key,
             'wsdlFilespec'  => $this->wsdl_file,
         );
+		If(WP_DEBUG) error_log( "Connection: ".serialize($this->connection) );
+		
         $this->header = array(
             'source'        => 'TEAM',
             'accountNo'     => $this->account_no,
             'userAccessKey' => $this->connection['userAccessKey']
         );
+		If(WP_DEBUG) error_log( "Header: ".serialize($this->header) );
+		
         $this->sender_location = array(
 			'postCode' 		=> $this->get_option( 'sender_pcode' ),
 			'state'         => "",
@@ -73,9 +77,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 			)
 		);
 		try {
+			If(WP_DEBUG) error_log( "validating postCode from settings: " . serialize($request));
 			$oC = new STEeService();
 			$response = $oC->invokeWebService($this->connection,'validateAddress', $request);
 			
+			If(WP_DEBUG) error_log( "response: " . serialize($response) );
 			//fill in sender location with first matched location
 			if($response->matchedAddress) {
 				$this->sender_location['suburb'] = $response->matchedAddress[0]->suburbOrLocation;
@@ -83,6 +89,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 			}   
 		}
 		catch (SoapFault $e) {
+			If(WP_DEBUG) error_log( "Soapfault! " . serialize( get_object_vars ($e) ) );
 			$response = false;
 			//TODO: add admin message: could not contact StarTrack eServices.
 		}       		
@@ -363,7 +370,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             if($line['data']->has_dimensions()){
                 $dimensions = explode(' x ', $line['data']->get_dimensions());
                 $dimensions[2] = str_replace( ' '.get_option( 'woocommerce_dimension_unit' ), '', $dimensions[2]); 
-                $params['volume'] += $line['quantity'] * array_product( $dimensions );
+                $params['volume'] += $line['quantity'] * array_product( $dimensions ) / 1000000;
             } else {
                 // throw exception because can't get dimensions
             }
@@ -470,11 +477,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                             'serviceCode'       => $code,
                             'noOfItems'         => $params['noOfItems'], 
 							// TODO uncomment these
-                            // 'weight'            => $params['weight'   ],
-                            'weight'            => 5.0,
+                            'weight'            => $params['weight'   ],
+                            // 'weight'            => 5.0,
                             //THIS IS IN CM
-                            // 'volume'            => $params['volume'   ],
-                            'volume'            => 0.01,
+                            'volume'            => $params['volume'   ],
+                            // 'volume'            => 0.01,
                         )
                     );
 					
@@ -496,24 +503,17 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                     catch (SoapFault $e) {
                         $response = false;
                         If(WP_DEBUG) error_log( "Exception in calculateCost, " . $e );
-                        //TODO: add admin message: could not contact StarTrack eServices.
+                        If(WP_DEBUG) error_log( "details: " . $e->getMessage() );
+						//TODO: add admin message: could not contact StarTrack eServices.
                     }
                     
                     If(WP_DEBUG) error_log( "response: \n".serialize($response) );
                     // If(WP_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
                 }
-            }
+            } else {
+				If(WP_DEBUG) error_log( "no prefs" );
+			}
         }
-
-        $rate = array(
-            'id'        => $this->id,
-            'label'     => $this->title,
-            'cost'      => '100.99',
-            'calc_tax'  => 'per_item'
-        );
-
-        // Register the rate
-        $this->add_rate( $rate );
     }
 }
 
