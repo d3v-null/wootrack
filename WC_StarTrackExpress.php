@@ -43,7 +43,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->access_key   = $this->get_option( 'access_key'   );
         $this->username     = $this->get_option( 'username'     );
         $this->password     = $this->get_option( 'password'     );
+        $this->p_path       = $this->get_option( 'protected_path');
         $this->wsdl_file    = $this->get_option( 'wsdl_file'    );
+        
         // $this->sender_addr  = $this->get_option( 'sender_addr'  );
         // $this->sender_suburb= $this->get_option( 'sender_suburb');
         // $this->sender_state = $this->get_option( 'sender_state' );
@@ -52,7 +54,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             'username'      => $this->username,
             'password'      => $this->password,
             'userAccessKey' => $this->access_key,
-            'wsdlFilespec'  => $this->wsdl_file,
+            'wsdlFilespec'  => $this->p_path . $this->wsdl_file,
         );
 		If(WP_DEBUG) error_log( "Connection: ".serialize($this->connection) );
 		
@@ -243,45 +245,34 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             ?>
 			
 			<tr valign="top">
-				<th colspan=2 scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
-			</tr>
-            <tr valign="top">
-				<th><?php _e('Protected path', 'wootrack'); ?></th>
-				<td><?php 
-                    $path = $this->get_option('protected_path');
-                    $status = [
-                        'is_dir'        => is_dir(      $path);
-                        'is_readable'   => is_readable( $path);
-                        'is_writeable'  => is_writeable($path);
-                        
-                    ];
-                    echo '<p>' . __('Is a valid directory', 'wootrack') . ': ' . $stats['is_dir'] . '</p>';
-                    echo '<p>' . __('we have read access',  'wootrack') . ': ' . $stats['is_readable'] . '</p>';
-                    echo '<p>' . __('we have write access', 'wootrack') . ': ' . $stats['is_writeable'] . '</p>';
-                    
-                ?></td>
-			</tr>            
-            <!--<tr valign="top">
-				<th><?php _e('Connection to StarTrack server', 'wootrack'); ?></th>
-				<td><?php 
-                    //TO DO 
-                ?></td>
-			</tr>-->
-            <tr valign="top">
-				<th><?php _e('Matched Suburb', 'wootrack'); ?></th>
-				<td><?php 
-                    if($this->sender_location['suburb'] != '') {
-                        echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
-                    } else {
-                        _e('No matched location. Press save settings to refresh', 'wootrack');
-                    }
-                ?></td>
-			</tr>
-            <!--<tr valign="top">
-				<th><?php _e('Matched Suburb', 'wootrack'); ?></th>
-				<td><?php echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] ); ?></td>
-			</tr>-->
-            
+				<th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
+                <td>
+                    <p><strong><?php echo __('Protected path', 'wootrack') . '<br>'; ?></strong>
+                    <?php 
+                        $p_path = $this->get_option('protected_path');
+                        // $status = [
+                            // 'is_dir'        => is_dir(      $path),
+                            // 'is_readable'   => is_readable( $path),
+                            // 'is_writeable'  => is_writeable($path),
+                        // ];
+                        echo __('Is a valid directory', 'wootrack') . ': ' . (is_dir(      $p_path)?'Y':'N') . '<br>';
+                        echo __('we have read access',  'wootrack') . ': ' . (is_readable( $p_path)?'Y':'N') . '<br>';
+                        echo __('we have write access', 'wootrack') . ': ' . (is_writeable($p_path)?'Y':'N') ;
+                    ?></p>
+                    <p><strong><?php echo __('Connection to eServices API', 'wootrack') . '<br>'; ?></strong>
+                    <?php
+                        echo $response?'Y':'N';
+                    ?></p>
+                    <p><strong><?php echo __('Matched Suburb', 'wootrack') . '<br>'; ?></strong>
+                    <?php
+                        if($this->sender_location['suburb'] != '') {
+                            echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
+                        } else {
+                            _e('No matched location. Press save settings to refresh', 'wootrack');
+                        }
+                    ?></p>
+                </td>
+			</tr>           
 			
             
             <tr valign="top">
