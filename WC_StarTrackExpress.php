@@ -138,10 +138,24 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 // 'description'   => '',                
                 'default'       => 'Tay12345'
             ),
+            'protected_path'=> array (
+                'title'         => __('Protected path', 'wootrack'),
+                'type'          => 'text',
+                'description'   => __('location of protected directory where sensitive config files are stored'),
+                'desc_tip'      => true,
+                'default'       => '/public_html/cgi_bin/',
+            ),
+            // 'forced_SSL_ver'=> array{
+                // 'title'         => __('Forced SSL version', 'wootrack'),
+                // 'type'          => 'text',
+                // 'description'   => __('Version of SSL to use when communicating with Star Track'),
+                // 'desc_tip'      => true,
+                // 'default'       => '3',
+            // ),
             'wsdl_file'     => array(
                 'title'         => __('WSDL File Spec', 'wootrack'),
                 'type'          => 'text',
-                'description'   => __('Location of the WSDL XML file', 'wootrack'),         
+                'description'   => __('Location of the WSDL XML file within the protected path', 'wootrack'),         
                 'desc_tip'      => true,
                 'default'       => 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
             ),
@@ -229,9 +243,45 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             ?>
 			
 			<tr valign="top">
+				<th colspan=2 scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
+			</tr>
+            <tr valign="top">
+				<th><?php _e('Protected path', 'wootrack'); ?></th>
+				<td><?php 
+                    $path = $this->get_option('protected_path');
+                    $status = [
+                        'is_dir'        => is_dir(      $path);
+                        'is_readable'   => is_readable( $path);
+                        'is_writeable'  => is_writeable($path);
+                        
+                    ];
+                    echo '<p>' . __('Is a valid directory', 'wootrack') . ': ' . $stats['is_dir'] . '</p>';
+                    echo '<p>' . __('we have read access',  'wootrack') . ': ' . $stats['is_readable'] . '</p>';
+                    echo '<p>' . __('we have write access', 'wootrack') . ': ' . $stats['is_writeable'] . '</p>';
+                    
+                ?></td>
+			</tr>            
+            <!--<tr valign="top">
+				<th><?php _e('Connection to StarTrack server', 'wootrack'); ?></th>
+				<td><?php 
+                    //TO DO 
+                ?></td>
+			</tr>-->
+            <tr valign="top">
+				<th><?php _e('Matched Suburb', 'wootrack'); ?></th>
+				<td><?php 
+                    if($this->sender_location['suburb'] != '') {
+                        echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
+                    } else {
+                        _e('No matched location. Press save settings to refresh', 'wootrack');
+                    }
+                ?></td>
+			</tr>
+            <!--<tr valign="top">
 				<th><?php _e('Matched Suburb', 'wootrack'); ?></th>
 				<td><?php echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] ); ?></td>
-			</tr>
+			</tr>-->
+            
 			
             
             <tr valign="top">
@@ -356,9 +406,10 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     //TODO: postcode and username validation
     
     public function calculateShippingParams($contents){
+        //default values for parameters
         $params = array(
-            'weight'    => 0,
-            'volume'    => 0,
+            'weight'    => 1,
+            'volume'    => 0.1,
             'noOfItems' => 1,
         );
         foreach($contents as $line){

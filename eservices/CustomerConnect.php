@@ -11,6 +11,7 @@
 
 require_once("eServices.php");								// Import the StarTrack PHP API - do not modify that file
 
+// define("USER_INACCESSIBLE_PATH", "C:/XAMPP/cgi-bin/");		// ****** MODIFY AS REQUIRED ******
 define("USER_INACCESSIBLE_PATH", "C:/XAMPP/cgi-bin/");		// ****** MODIFY AS REQUIRED ******
 															// The directory that will hold WSDL, JSON and properties files
 															// For security reasons, must be inaccessible to web users
