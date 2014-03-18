@@ -518,7 +518,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                             'receiverLocation'  => $receiverLocation,
                             'serviceCode'       => $code,
                             'noOfItems'         => $params['noOfItems'], 
-							// TODO uncomment these
                             'weight'            => $params['weight'   ],
                             // 'weight'            => 5.0,
                             //THIS IS IN CM
