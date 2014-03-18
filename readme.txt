@@ -16,6 +16,11 @@ Registers the StarTrack shipping method in WooCommerce
 
 == Installation ==
 
+Requires:
+-> (Full) cPanel access 
+
+1. Install PHP-SOAP
+
 
 == Frequently Asked Questions ==
 

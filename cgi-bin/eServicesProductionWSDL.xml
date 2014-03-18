@@ -1,0 +1,2362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created by TIBCO WSDL-->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://startrack.com.au/ESB/Services/Concrete/External/Services/v1" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns0="http://startrackexpress/Common/actions/externals/MasterData/v1" xmlns:ns1="http://startrackexpress/Common/externals/Faultv1" xmlns:ns2="http://startrackexpress/Common/actions/externals/Booking/v1" xmlns:ns3="http://startrackexpress/Common/actions/externals/FreightCalculation/v1" xmlns:ns4="http://startrackexpress/Common/actions/externals/Consignment/v1" xmlns:ns5="http://startrackexpress/Common/Primitives/v1" xmlns:ns6="http://startrackexpress/Common/FreightDespatching/v1" xmlns:ns7="http://startrackexpress/Common/FreightProcessing/v1" xmlns:ns8="http://startrackexpress/Common/MasterData/v1" xmlns:ns9="http://startrackexpress/Common/Booking/v1" xmlns:ns10="http://startrackexpress/Common/Account/v1" xmlns:ns11="http://startrackexpress/Common/Imaging/v1" name="Untitled" targetNamespace="http://startrack.com.au/ESB/Services/Concrete/External/Services/v1">
+    <wsdl:types>
+        <xsd:schema xmlns="http://startrackexpress/Common/externals/Fault/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/externals/Faultv1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:element name="fault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fs_code" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_category" type="prim:faultCategoryType" minOccurs="0"/>
+                        <xsd:element name="fs_severity" type="prim:faultSeverityType" minOccurs="0"/>
+                        <xsd:element name="fs_timestamp" type="xsd:dateTime" minOccurs="0"/>
+                        <xsd:element name="fs_message" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_logicalComponentId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_physicalComponentId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_system" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_correlationId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_faultPayload" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:acc="http://startrackexpress/Common/Account/v1" targetNamespace="http://startrackexpress/Common/Primitives/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Account/v1"/>
+            <xsd:complexType name="ExtLocationDetailsType">
+                <xsd:sequence>
+                    <xsd:element name="suburb" type="ns5:extSuburbType"/>
+                    <xsd:element name="postCode" type="ns5:extPostCodeType"/>
+                    <xsd:element name="state" type="ns5:extStateType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="ID">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="LocationDetailsType">
+                <xsd:sequence>
+                    <xsd:element name="locationStandard" type="ns5:locationStandardEnum"/>
+                    <xsd:element name="suburb" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="postCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="state" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ScanModeHeaderType">
+                <xsd:sequence>
+                    <xsd:element name="scanModeType" type="ns5:scanModeTypeEnum"/>
+                    <xsd:element name="scanMode" type="ns5:scanMode" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="TransactionHeaderType">
+                <xsd:sequence>
+                    <xsd:element name="source" type="xsd:string"/>
+                    <xsd:element name="accountNo" type="xsd:integer"/>
+                    <xsd:element name="userAccessKey" type="xsd:string"/>
+                    <xsd:element name="userId" type="ns5:userIdType" minOccurs="0"/>
+                    <xsd:element name="transactionId" type="ns5:transactionIdType" minOccurs="0"/>
+                    <xsd:element name="transactionDatetime" type="xsd:dateTime" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="TransitStateHeaderType">
+                <xsd:sequence>
+                    <xsd:element name="transitStateType" type="ns5:transitStateTypeEnum"/>
+                    <xsd:element name="transitStateName" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="accountNumber">
+                <xsd:restriction base="xsd:integer"/>
+            </xsd:simpleType>
+            <xsd:complexType name="addressComplex">
+                <xsd:sequence>
+                    <xsd:element name="id" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="addressLine" type="xsd:string" minOccurs="0" maxOccurs="3"/>
+                    <xsd:element name="suburbOrLocation" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="state" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="postCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="country" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="deliveryPoint" type="ns5:delliveryPointComplex" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="advancedConsignmentSearchComplext">
+                <xsd:sequence>
+                    <xsd:element name="consignmentType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchDateToday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="despatchDateYesterday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="despatchDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="despatchDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="deliveryDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="deliveryDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDateDateToday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="etaDateDateYesterday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="deliveryDateToday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="deliveryDateYesterday" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="businessTransaction">
+                <xsd:sequence>
+                    <xsd:element name="Id" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="IdQualifier" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="businessUnit">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="carrierComplex">
+                <xsd:sequence>
+                    <xsd:element name="carrierCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="claimDefinitionComplex">
+                <xsd:sequence>
+                    <xsd:element name="claimArea" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="claimCategory" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="targetSystem" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="claimDefinitionId" type="ns5:ID" minOccurs="0"/>
+                    <xsd:element name="consignmentIdRequired" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="claimResponseMethod">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="EMAIL"/>
+                    <xsd:enumeration value="FAX"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="connoteTransitStateComplex">
+                <xsd:sequence>
+                    <xsd:element name="connoteTransitState" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="connoteTransitStateDesc" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="contactDetailsComplex">
+                <xsd:sequence>
+                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="phoneNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="mobileNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="faxNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="address" type="ns5:addressComplex" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="customerDefinedRefValues">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="referenceOrder" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="printOnConntoe" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="customerDefinedRefs">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="isMandatory" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="referenceOrder" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="printOnConnote" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="customerId">
+                <xsd:restriction base="ns5:ID"/>
+            </xsd:simpleType>
+            <xsd:complexType name="delliveryPointComplex">
+                <xsd:sequence>
+                    <xsd:element name="dpId" type="ns5:dpId" minOccurs="0"/>
+                    <xsd:element name="longitude" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="latitude" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="depotCode">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="depotCutOffTimeComplex">
+                <xsd:sequence>
+                    <xsd:element name="depotCode" type="ns5:depotCode" minOccurs="0"/>
+                    <xsd:element name="depotName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="airBookingCutOff" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="roadBookingCutOff" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="airPickupCutOff" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="roadPickupCutOff" type="xsd:time" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="despatchFreightPreferences">
+                <xsd:sequence>
+                    <xsd:element name="defaultSenderAccount" type="acc:accountType" minOccurs="0"/>
+                    <xsd:element name="defaultCarrier" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="defaultPackagingType" type="ns5:packagingType" minOccurs="0"/>
+                    <xsd:element name="defaultAutoConfirm" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultPrintSecondaryLabel" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultBookinDelivery" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultNotifyReceiver" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultPayerType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="defaultUpdateReceiverList" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultRequestService" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultUseReceiverGroup" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultSMSAlertAtDelivery" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultAutoPrintLabels" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultAutoConsolidate" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultConsolidateOnRef" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="defaultService" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="despatchId">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="despatchType">
+                <xsd:sequence>
+                    <xsd:element name="despatchId" type="ns5:despatchId" minOccurs="0"/>
+                    <xsd:element name="cutOffTime" type="xsd:time" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="dpId">
+                <xsd:restriction base="ns5:ID"/>
+            </xsd:simpleType>
+            <xsd:complexType name="enquiryDefinitionComplex">
+                <xsd:sequence>
+                    <xsd:element name="enquiryArea" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="enquiryCategory" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="recipientEmailAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="targetSystem" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="requiresAuthentication" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="enquiryDefinitionId" type="ns5:ID" minOccurs="0"/>
+                    <xsd:element name="consignmentIdRequired" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="enquiryResponseMethod">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="PHONE"/>
+                    <xsd:enumeration value="EMAIL"/>
+                    <xsd:enumeration value="FAX"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="extPostCodeType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="5"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="extStateType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="4"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="extSuburbType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="50"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="fault">
+                <xsd:sequence>
+                    <xsd:element name="code" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="category" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="severity" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="technicalContext" type="ns5:technicalContext" minOccurs="0"/>
+                    <xsd:element name="businessTransaction" type="ns5:businessTransaction" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="faultPayload" type="ns5:faultPayload" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="faultContext" type="ns5:faultContext" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="faultCategoryType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="LOGICAL"/>
+                    <xsd:enumeration value="TECHNICAL"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="faultContext">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="faultPayload">
+                <xsd:sequence>
+                    <xsd:element name="qualifier" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="payload" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="faultSeverityType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="ERROR"/>
+                    <xsd:enumeration value="WARN"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="freightItemId">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:simpleType name="freightItemIncidentCode">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="freightTrackingPreferencesComplex">
+                <xsd:sequence>
+                    <xsd:element name="trackingFavouriteId" type="ns5:trackingFavouriteId" minOccurs="0"/>
+                    <xsd:element name="isDefault" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="consignmentId" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="referenceNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="despatchDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="despatchDateYesterday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="etaDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDateToday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="deliveryDateFrom" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="deliveryDateTo" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="deliveryDateToday" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="consignmentType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="consignmentStatus" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="accountNumber" type="ns5:accountNumber" minOccurs="0"/>
+                    <xsd:element name="despatchId" type="ns5:despatchId" minOccurs="0"/>
+                    <xsd:element name="receiverName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverState" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverSuburb" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverPostCode" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="senderName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="senderState" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="senderSuburb" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="senderPostCode" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="advancedConsignmentType" type="ns5:advancedConsignmentSearchComplext" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="hotListNotificationMethod">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="SMS"/>
+                    <xsd:enumeration value="EMAIL"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="imageId">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="locationCutoffTimeComplex">
+                <xsd:sequence>
+                    <xsd:element name="serviceCode" type="xsd:string"/>
+                    <xsd:element name="suburbName" type="ns5:extSuburbType"/>
+                    <xsd:element name="postCode" type="ns5:extPostCodeType"/>
+                    <xsd:element name="nearestDepotCode" type="xsd:string"/>
+                    <xsd:element name="regularCutoffTime" type="xsd:time"/>
+                    <xsd:element name="oversizeCutoffTime" type="xsd:time"/>
+                    <xsd:element name="lateCutOffTime" type="xsd:time"/>
+                    <xsd:element name="localTimezone" type="xsd:string"/>
+                    <xsd:element name="lateSurcharge" type="xsd:decimal"/>
+                    <xsd:element name="auspostLodgement" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="agentLodgement" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="oversizeDimension" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="oversizeWeight" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="maxDimension" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="maxWeight" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="nextBusinessDay" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="currentTimeAtLocation" type="xsd:time" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="locationId">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:simpleType name="locationStandardEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="TEAM"/>
+                    <xsd:enumeration value="AUS-POST"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="matchedAddressComplex">
+                <xsd:sequence>
+                    <xsd:element name="id" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="addressLine" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="suburbOrLocation" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="state" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="postCode" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="country" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="deliveryPoint" type="ns5:delliveryPointComplex" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="opCodeEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="INSERT"/>
+                    <xsd:enumeration value="UPDATE"/>
+                    <xsd:enumeration value="DELETE"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="packagingType">
+                <xsd:sequence>
+                    <xsd:element name="unitType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="height" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="weight" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="length" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="width" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="paginationType">
+                <xsd:sequence>
+                    <xsd:element name="maxRows" type="xsd:integer"/>
+                    <xsd:element name="availableRows" type="xsd:integer"/>
+                    <xsd:element name="firstRow" type="xsd:integer"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="pickupBookingPrefsComplex">
+                <xsd:sequence>
+                    <xsd:element name="defaultService" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="defaultPickupLocation" type="ns5:pickupLocationComplex" minOccurs="0"/>
+                    <xsd:element name="defaultUpdatePickupLocationList" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="pickupLocationComplex">
+                <xsd:sequence>
+                    <xsd:element name="index" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupCompanyName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupContact" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupAddress" type="ns5:addressComplex" minOccurs="0"/>
+                    <xsd:element name="pickupPhoneNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupEmailAddress" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupPoint" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="closingTime" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="airCutoffTime" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="roadCutoffTime" type="xsd:time" minOccurs="0"/>
+                    <xsd:element name="nearestDepotCode" type="ns5:depotCode" minOccurs="0"/>
+                    <xsd:element name="regularPickup" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="qcCode">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="receiverGroup">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiver" type="acc:receiverType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="receiverId">
+                <xsd:restriction base="ns5:ID"/>
+            </xsd:simpleType>
+            <xsd:simpleType name="scanMode">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:simpleType name="scanModeTypeEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="CONSIGNMENT"/>
+                    <xsd:enumeration value="FREIGHTITEM"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="serviceClass">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="serviceCodeComplex">
+                <xsd:sequence>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceDescription" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceClass" type="ns5:serviceClass" minOccurs="0"/>
+                    <xsd:element name="serviceType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceRank" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="publiclyViewable" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="isDefault" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="sortOrder" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="transportType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="tLabelText" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="fastServiceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="newProduct" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="applicability" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="serviceTypeEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="Road"/>
+                    <xsd:enumeration value="Air"/>
+                    <xsd:enumeration value="Special"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="technicalContext">
+                <xsd:sequence>
+                    <xsd:element name="logicalComponentId" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="physicalComponentId" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="system" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="correlationId" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="tp_TransactionHeaderType">
+                <xsd:sequence>
+                    <xsd:element name="source" type="xsd:string"/>
+                    <xsd:element name="userAccessKey" type="xsd:string"/>
+                    <xsd:element name="userId" type="ns5:userIdType" minOccurs="0"/>
+                    <xsd:element name="transactionId" type="ns5:transactionIdType" minOccurs="0"/>
+                    <xsd:element name="transactionDatetime" type="xsd:dateTime" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="trackingFavouriteId">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:simpleType name="trackingTypeEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="CONSIGNMENT"/>
+                    <xsd:enumeration value="FREIGHTITEM"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="transactionIdType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="150"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="transitStateTypeEnum">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="CONSIGNMENT"/>
+                    <xsd:enumeration value="FREIGHTITEM"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="unitType">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="updateDepotCutOffTimeComplex">
+                <xsd:sequence>
+                    <xsd:element name="depotCode" type="ns5:depotCode"/>
+                    <xsd:element name="airBookingCutOff" type="xsd:time"/>
+                    <xsd:element name="roadBookingCutOff" type="xsd:time"/>
+                    <xsd:element name="airPickupCutOff" type="xsd:time"/>
+                    <xsd:element name="roadPickupCutOff" type="xsd:time"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="userIdType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="30"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:element name="fault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fault" type="ns5:fault" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://startrackexpress/Common/actions/externals/Booking/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:despatch="http://startrackexpress/Common/FreightDespatching/v1" xmlns:book="http://startrackexpress/Common/Booking/v1" targetNamespace="http://startrackexpress/Common/actions/externals/Booking/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xs:import namespace="http://startrackexpress/Common/FreightDespatching/v1"/>
+            <xs:import namespace="http://startrackexpress/Common/Booking/v1"/>
+            <xs:element name="createPickupBookingRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="header" type="prim:TransactionHeaderType"/>
+                        <xs:element name="pickupBooking" type="book:pickupBookingType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="createPickupBookingResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="pickupBookingId" type="despatch:pickupBookingIdType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPickupCutoffTimesRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="header" type="prim:TransactionHeaderType"/>
+                        <xs:element name="pickupCutoffParameters" type="book:pickupCutoffTime"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPickupCutoffTimesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="pickupCutoffDetails" type="prim:locationCutoffTimeComplex"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="tp_createPickupBookingRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xs:element name="pickupBooking" type="book:pickupBookingType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="tp_createPickupBookingResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="pickupBookingId" type="despatch:pickupBookingIdType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="tp_getPickupCutoffTimesRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xs:element name="pickupCutoffParameters" type="book:pickupCutoffTime"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="tp_getPickupCutoffTimesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="pickupCutoffDetails" type="prim:locationCutoffTimeComplex"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/FreightDespatching/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:acc="http://startrackexpress/Common/Account/v1" xmlns:img="http://startrackexpress/Common/Imaging/v1" xmlns:con="http://startrackexpress/Common/FreightProcessing/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/FreightDespatching/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Account/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Imaging/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/FreightProcessing/v1"/>
+            <xsd:complexType name="PODType">
+                <xsd:sequence>
+                    <xsd:element name="image" type="ns6:imageType" minOccurs="0"/>
+                    <xsd:element name="attachment" type="img:imageType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="dangerousGoodsType">
+                <xsd:sequence>
+                    <xsd:element name="subsidiaryClass" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="packagingGroup" type="xsd:string"/>
+                    <xsd:element name="dgClass" type="xsd:string"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="commonName" use="required" type="xsd:string"/>
+                <xsd:attribute name="outerPackaging" use="required" type="xsd:string"/>
+                <xsd:attribute name="properShippingName" use="required" type="xsd:string"/>
+                <xsd:attribute name="quantity" use="required" type="xsd:integer"/>
+                <xsd:attribute name="unNumber" use="required" type="xsd:integer"/>
+                <xsd:attribute name="weight" use="required" type="xsd:decimal"/>
+            </xsd:complexType>
+            <xsd:complexType name="despatchOptionsType">
+                <xsd:attribute name="closeOnSave" type="xsd:boolean"/>
+                <xsd:attribute name="confirm" type="xsd:boolean"/>
+                <xsd:attribute name="consolidate" type="xsd:boolean"/>
+                <xsd:attribute name="consolidateSendersReference" type="xsd:boolean"/>
+                <xsd:attribute name="noOfLabels" type="xsd:integer"/>
+                <xsd:attribute name="printInternalLabels" type="xsd:boolean"/>
+                <xsd:attribute name="printLabelsNow" type="xsd:boolean"/>
+                <xsd:attribute name="printSecondLabels" type="xsd:boolean"/>
+                <xsd:attribute name="requestService" type="xsd:boolean"/>
+            </xsd:complexType>
+            <xsd:complexType name="despatchType">
+                <xsd:sequence>
+                    <xsd:element name="receiver" type="ns6:receiverType"/>
+                    <xsd:element name="sender" type="ns6:senderType"/>
+                    <xsd:element name="specialInstructions" type="xsd:string" minOccurs="0" maxOccurs="4"/>
+                    <xsd:element name="reference" type="ns6:referenceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string"/>
+                    <xsd:element name="despatchOptions" type="ns6:despatchOptionsType" minOccurs="0"/>
+                    <xsd:element name="lineItems" type="ns6:lineItemType" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="adhocReceiver" type="xsd:boolean"/>
+                <xsd:attribute name="bookInNotAfter" type="xsd:dateTime"/>
+                <xsd:attribute name="bookInNotBefore" type="xsd:dateTime"/>
+                <xsd:attribute name="carrierCode" type="xsd:string"/>
+                <xsd:attribute name="despatchDate" use="required" type="xsd:date"/>
+                <xsd:attribute name="despatchNotification" type="xsd:boolean"/>
+                <xsd:attribute name="labelText_1" type="xsd:string"/>
+                <xsd:attribute name="labelText_2" type="xsd:string"/>
+                <xsd:attribute name="labelText_3" type="xsd:string"/>
+                <xsd:attribute name="payerAccountNumber" use="required" type="prim:accountNumber"/>
+                <xsd:attribute name="payerType" type="xsd:string"/>
+                <xsd:attribute name="quotationNumber" type="xsd:string"/>
+                <xsd:attribute name="type" use="required" type="xsd:string"/>
+                <xsd:attribute name="userName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="freightItemType">
+                <xsd:sequence>
+                    <xsd:element name="incident" type="prim:freightItemIncidentCode" minOccurs="0" maxOccurs="9"/>
+                    <xsd:element name="reference" type="ns6:referenceType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="consolidateSenderReference" type="xsd:boolean"/>
+                <xsd:attribute name="currentTransitState" type="xsd:string"/>
+                <xsd:attribute name="id" type="prim:freightItemId"/>
+                <xsd:attribute name="measuredCube" type="xsd:decimal"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+                <xsd:attribute name="weight" type="xsd:integer"/>
+            </xsd:complexType>
+            <xsd:complexType name="imageType">
+                <xsd:complexContent>
+                    <xsd:extension base="img:imageType">
+                        <xsd:sequence>
+                            <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="signatoryName" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="lineItemType">
+                <xsd:sequence>
+                    <xsd:element name="dangerousGoods" type="ns6:dangerousGoodsType" minOccurs="0"/>
+                    <xsd:element name="cost" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="reference" type="ns6:referenceType" minOccurs="0" maxOccurs="6"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="atl" type="xsd:boolean"/>
+                <xsd:attribute name="customerCube" use="required" type="xsd:decimal"/>
+                <xsd:attribute name="customerHeight" type="xsd:decimal"/>
+                <xsd:attribute name="customerLength" type="xsd:decimal"/>
+                <xsd:attribute name="customerWeight" use="required" type="xsd:decimal"/>
+                <xsd:attribute name="customerWidth" type="xsd:decimal"/>
+                <xsd:attribute name="etaDttm" type="xsd:dateTime"/>
+                <xsd:attribute name="packagingType" use="required" type="xsd:string"/>
+                <xsd:attribute name="quantity" use="required" type="xsd:integer"/>
+                <xsd:attribute name="riskWarrantyValue" type="xsd:integer"/>
+                <xsd:attribute name="serviceCode" use="required" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="pickupBookingIdType">
+                <xsd:sequence>
+                    <xsd:element name="bookingNumber" type="xsd:string"/>
+                    <xsd:element name="createdDateTime" type="xsd:dateTime"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="pickupBookingType">
+                <xsd:sequence>
+                    <xsd:element name="userName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="orgName" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="contactName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactPhoneNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactEmailAddress" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupPoint" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupAddress" type="prim:addressComplex"/>
+                    <xsd:element name="deliveryAddress" type="prim:addressComplex" minOccurs="0"/>
+                    <xsd:element name="closingTime" type="xsd:time"/>
+                    <xsd:element name="pickupDetails" type="ns6:pickupDetailsType"/>
+                    <xsd:element name="payerAccountNo" type="xsd:string"/>
+                    <xsd:element name="consignmentId" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="pickupFreightItemGroup" type="ns6:pickupFreightItemGroupType" maxOccurs="unbounded"/>
+                    <xsd:element name="despatch_location_lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="pickupDetailsType">
+                <xsd:sequence>
+                    <xsd:element name="requestedDate" type="xsd:date"/>
+                    <xsd:element name="timeReady" type="ns6:timeReadyType" maxOccurs="3"/>
+                    <xsd:element name="destination" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="specialInstructions" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="pickupFreightItemGroup">
+                <xsd:complexContent>
+                    <xsd:extension base="ns6:pickupFreightItemGroupType">
+                        <xsd:sequence>
+                            <xsd:element name="serviceType" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="serviceRank" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="unitTypeRank" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="pickupFreightItemGroupType">
+                <xsd:sequence>
+                    <xsd:element name="quantity" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="weight" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="height" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="width" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="length" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="unitType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="receiverType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="accountNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactDetails" type="prim:contactDetailsComplex" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="referenceType">
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="name" type="xsd:string"/>
+                <xsd:attribute name="printOnLabel" type="xsd:boolean"/>
+                <xsd:attribute name="priority" type="xsd:integer"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+                <xsd:attribute name="value" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="requestorType">
+                <xsd:sequence>
+                    <xsd:element name="orgName" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="phoneNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="payerAccountNumber" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="senderType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="accountNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactDetails" type="prim:contactDetailsComplex" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="timeReadyType">
+                <xsd:sequence>
+                    <xsd:element name="serviceType" type="prim:serviceTypeEnum"/>
+                    <xsd:element name="time" type="xsd:time"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="updateDangerousGoodsType">
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="quantity" use="required" type="xsd:integer"/>
+                <xsd:attribute name="weight" use="required" type="xsd:decimal"/>
+            </xsd:complexType>
+            <xsd:complexType name="updateDespatchType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentId" type="xsd:string"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string"/>
+                    <xsd:element name="updateStatus" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="userName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="labelText" nillable="true" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="labelText_2" nillable="true" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="labelText_3" nillable="true" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="specialInstructions" nillable="true" type="xsd:string" minOccurs="0" maxOccurs="4"/>
+                    <xsd:element name="lock_seq" type="xsd:string"/>
+                    <xsd:element name="reference" type="ns6:updateReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="lineItems" type="ns6:updateLineItems" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="despatchOptions" type="ns6:despatchOptionsType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="updateLineItemType">
+                <xsd:sequence>
+                    <xsd:element name="dangerousGoods" type="ns6:updateDangerousGoodsType" minOccurs="0"/>
+                    <xsd:element name="reference" type="ns6:updateReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="cost" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="lock_seq" type="xsd:string"/>
+                </xsd:sequence>
+                <xsd:attribute name="atl" type="xsd:boolean"/>
+                <xsd:attribute name="customerCube" use="required" type="xsd:decimal"/>
+                <xsd:attribute name="customerHeight" type="xsd:decimal"/>
+                <xsd:attribute name="customerLength" type="xsd:decimal"/>
+                <xsd:attribute name="customerWeight" use="required" type="xsd:decimal"/>
+                <xsd:attribute name="customerWidth" type="xsd:decimal"/>
+                <xsd:attribute name="etaDttm" type="xsd:dateTime"/>
+                <xsd:attribute name="lineNumber" use="required" type="xsd:integer"/>
+                <xsd:attribute name="packagingType" use="required" type="xsd:string"/>
+                <xsd:attribute name="quantity" use="required" type="xsd:integer"/>
+                <xsd:attribute name="riskWarrantyValue" type="xsd:integer"/>
+                <xsd:attribute name="serviceCode" use="required" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="updateLineItems">
+                <xsd:complexContent>
+                    <xsd:extension base="ns6:updateLineItemType">
+                        <xsd:sequence>
+                            <xsd:element name="opCode" type="prim:opCodeEnum"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="updateReferenceType">
+                <xsd:sequence>
+                    <xsd:element name="opCode" type="prim:opCodeEnum"/>
+                    <xsd:element name="newValue" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="reference" type="ns6:referenceType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/FreightProcessing/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:img="http://startrackexpress/Common/Imaging/v1" xmlns:acc="http://startrackexpress/Common/Account/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/FreightProcessing/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Imaging/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Account/v1"/>
+            <xsd:complexType name="DGType">
+                <xsd:sequence>
+                    <xsd:element name="subsidiaryClass" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="packagingGroup" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="dgClass" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="commonName" type="xsd:string"/>
+                <xsd:attribute name="finalDGDeclarationPrintedDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="outerPackaging" type="xsd:string"/>
+                <xsd:attribute name="properShippingName" type="xsd:string"/>
+                <xsd:attribute name="unNumber" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="PODType">
+                <xsd:sequence>
+                    <xsd:element name="image" type="img:imageType" minOccurs="0"/>
+                    <xsd:element name="attachment" type="img:imageType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="consignmentTrackingEventType">
+                <xsd:complexContent>
+                    <xsd:extension base="ns7:trackingEventType">
+                        <xsd:sequence>
+                            <xsd:element name="scanMode" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="transitState" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                        <xsd:attribute name="quantityDelivered" type="xsd:integer"/>
+                        <xsd:attribute name="quantityOnHand" type="xsd:integer"/>
+                        <xsd:attribute name="scanningDepot" type="xsd:string"/>
+                        <xsd:attribute name="signatoryName" type="xsd:string"/>
+                        <xsd:attribute name="signatureImageContent" type="xsd:string"/>
+                        <xsd:attribute name="statusDescription" type="xsd:string"/>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="consignmentType">
+                <xsd:sequence>
+                    <xsd:element name="references" type="ns7:referenceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="secondaryQcCode" type="prim:qcCode" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="receiver" type="ns7:senderType" minOccurs="0"/>
+                    <xsd:element name="sender" type="ns7:receiverType" minOccurs="0"/>
+                    <xsd:element name="specialInstructions" type="xsd:string" minOccurs="0" maxOccurs="4"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="statusHistory" type="ns7:statusHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="trackingEvents" type="ns7:consignmentTrackingEventType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="lineItems" type="ns7:lineItemType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="team_locatn" type="ns7:teamLocationType" minOccurs="0"/>
+                    <xsd:element name="image" type="ns7:imageType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="dangerousGoods" type="ns7:DGType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="billedInd" type="xsd:boolean"/>
+                <xsd:attribute name="bookInNotAfter" type="xsd:dateTime"/>
+                <xsd:attribute name="bookInNotBefore" type="xsd:dateTime"/>
+                <xsd:attribute name="carrierCode" type="xsd:string"/>
+                <xsd:attribute name="consolidate" type="xsd:boolean"/>
+                <xsd:attribute name="consolidateSendersReference" type="xsd:boolean"/>
+                <xsd:attribute name="creationDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="deliveryDepot" type="xsd:string"/>
+                <xsd:attribute name="despatchDate" type="xsd:date"/>
+                <xsd:attribute name="despatchDepot" type="xsd:string"/>
+                <xsd:attribute name="despatchNotification" type="xsd:boolean"/>
+                <xsd:attribute name="despatchSummaryId" type="xsd:string"/>
+                <xsd:attribute name="driverCube" type="xsd:decimal"/>
+                <xsd:attribute name="etaDate" type="xsd:dateTime"/>
+                <xsd:attribute name="id" type="xsd:string"/>
+                <xsd:attribute name="labelText" type="xsd:string"/>
+                <xsd:attribute name="labelText_2" type="xsd:string"/>
+                <xsd:attribute name="labelText_3" type="xsd:string"/>
+                <xsd:attribute name="lastStatusDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="payerAccountNumber" type="xsd:string"/>
+                <xsd:attribute name="payerType" type="xsd:string"/>
+                <xsd:attribute name="podSignatoryName" type="xsd:string"/>
+                <xsd:attribute name="podSignature" type="xsd:string"/>
+                <xsd:attribute name="publishedQcCode" type="prim:qcCode"/>
+                <xsd:attribute name="quotationNumber" type="xsd:string"/>
+                <xsd:attribute name="requestService" type="xsd:boolean"/>
+                <xsd:attribute name="source" type="xsd:string"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+                <xsd:attribute name="totalQuantity" type="xsd:integer"/>
+                <xsd:attribute name="totalVolume" type="xsd:double"/>
+                <xsd:attribute name="totalWeight" type="xsd:double"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+                <xsd:attribute name="unitType" type="xsd:string"/>
+                <xsd:attribute name="userName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="dangerousGoodsType">
+                <xsd:attribute name="interimDGPrinted" type="xsd:dateTime"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="quantity" type="xsd:integer"/>
+                <xsd:attribute name="weight" type="xsd:decimal"/>
+            </xsd:complexType>
+            <xsd:complexType name="depotType">
+                <xsd:sequence>
+                    <xsd:element name="code" type="prim:depotCode" minOccurs="0"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="abvreviation" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="latitude" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="longitude" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="adminDepotCode" type="prim:depotCode" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="freightItemTrackingEventType">
+                <xsd:complexContent>
+                    <xsd:extension base="ns7:trackingEventType">
+                        <xsd:attribute name="lane" type="xsd:string"/>
+                        <xsd:attribute name="scanMode" type="xsd:string"/>
+                        <xsd:attribute name="sortCode" type="xsd:string"/>
+                        <xsd:attribute name="statusDescription" type="xsd:string"/>
+                        <xsd:attribute name="transitState" type="xsd:string"/>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="freightItemType">
+                <xsd:sequence>
+                    <xsd:element name="freightItemTrackingEvent" type="ns7:freightItemTrackingEventType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="statusHistory" type="ns7:statusHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="printStatus" type="ns7:printStatusType" minOccurs="0"/>
+                    <xsd:element name="incident" type="prim:freightItemIncidentCode" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="cost" type="xsd:decimal"/>
+                <xsd:attribute name="currentTransitState" type="xsd:string"/>
+                <xsd:attribute name="etaDttm" type="xsd:dateTime"/>
+                <xsd:attribute name="id" type="prim:freightItemId"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="measuredCube" type="xsd:decimal"/>
+                <xsd:attribute name="measuredWeight" type="xsd:decimal"/>
+                <xsd:attribute name="riskWarrantyValue" type="xsd:integer"/>
+                <xsd:attribute name="sequenceNumber" type="xsd:integer"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="imageType">
+                <xsd:complexContent>
+                    <xsd:extension base="img:imageType">
+                        <xsd:sequence>
+                            <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="signatoryName" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="cartridge" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="frame" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="consignmentId" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="isPOD" type="xsd:boolean" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="lineItemType">
+                <xsd:sequence>
+                    <xsd:element name="dangerousGoods" type="ns7:dangerousGoodsType" minOccurs="0"/>
+                    <xsd:element name="freightItem" type="ns7:freightItemType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="references" type="ns7:referenceType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="UOM" type="xsd:string"/>
+                <xsd:attribute name="cube" type="xsd:decimal"/>
+                <xsd:attribute name="interimDespatchInd" type="xsd:boolean"/>
+                <xsd:attribute name="lineNumber" type="xsd:integer"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="noOfLabels" type="xsd:integer"/>
+                <xsd:attribute name="packagingType" type="xsd:string"/>
+                <xsd:attribute name="printInternalLabels" type="xsd:boolean"/>
+                <xsd:attribute name="printLabelsNow" type="xsd:boolean"/>
+                <xsd:attribute name="printSecondLabels" type="xsd:boolean"/>
+                <xsd:attribute name="quantity" type="xsd:string"/>
+                <xsd:attribute name="riskWarrantyLevel" type="xsd:string"/>
+                <xsd:attribute name="unitType" type="prim:unitType"/>
+                <xsd:attribute name="weight" type="xsd:decimal"/>
+            </xsd:complexType>
+            <xsd:complexType name="personType">
+                <xsd:attribute name="location" type="xsd:string"/>
+                <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="printStatusType">
+                <xsd:attribute name="printedInd" type="xsd:boolean"/>
+                <xsd:attribute name="reprintedInd" type="xsd:boolean"/>
+            </xsd:complexType>
+            <xsd:complexType name="receiverType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="accountNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactDetails" type="prim:contactDetailsComplex" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="referenceType">
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="name" type="xsd:string"/>
+                <xsd:attribute name="printOnLabel" type="xsd:boolean"/>
+                <xsd:attribute name="priority" type="xsd:integer"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+                <xsd:attribute name="value" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="scannerType">
+                <xsd:attribute name="depotCode" type="prim:depotCode"/>
+                <xsd:attribute name="id" type="prim:ID"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="senderType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                    <xsd:element name="accountNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="contactDetails" type="prim:contactDetailsComplex" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="statusHistoryType">
+                <xsd:sequence>
+                    <xsd:element name="user" type="ns7:userStatusHistoryType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="dateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="scanningDepot" type="xsd:string"/>
+                <xsd:attribute name="signatoryName" type="xsd:string"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="teamLocationType">
+                <xsd:attribute name="prim_air_depot" type="xsd:string"/>
+                <xsd:attribute name="secnd_air_depot" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="trackingEventType">
+                <xsd:sequence>
+                    <xsd:element name="scanner" type="ns7:scannerType" minOccurs="0"/>
+                    <xsd:element name="vehicle" type="ns7:vehicleType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="eventDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="id" type="prim:ID"/>
+                <xsd:attribute name="manualEvent" type="xsd:string"/>
+                <xsd:attribute name="user" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="userStatusHistoryType">
+                <xsd:attribute name="dateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+                <xsd:attribute name="user" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="vehicleType">
+                <xsd:attribute name="id" type="prim:ID"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+            </xsd:complexType>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/actions/externals/FreightCalculation/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/actions/externals/FreightCalculation/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:complexType name="choiceType">
+                <xsd:sequence>
+                    <xsd:element name="despatchDate" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="arrivalDate" type="xsd:date" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="serviceCodeType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="10"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:element name="calculateCostAndEstimatedTimeRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:TransactionHeaderType"/>
+                        <xsd:element name="senderLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="receiverLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="serviceCode" type="ns3:serviceCodeType"/>
+                        <xsd:element name="noOfItems" type="xsd:integer"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="volume" type="xsd:decimal"/>
+                        <xsd:element name="includeTransitWarranty" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="includeRiskWarranty" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="includeFuelSurcharge" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="includeSecuritySurcharge" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="choice" type="ns3:choiceType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="calculateCostAndEstimatedTimeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="cost" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="gstCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="fuelSurcharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="securitySurcharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="eta" type="xsd:dateTime" minOccurs="0"/>
+                        <xsd:element name="etd" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="calculateCostRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:TransactionHeaderType"/>
+                        <xsd:element name="senderLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="receiverLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="serviceCode" type="ns3:serviceCodeType"/>
+                        <xsd:element name="noOfItems" type="xsd:integer"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="volume" type="xsd:decimal"/>
+                        <xsd:element name="includeTransitWarranty" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="includeRiskWarranty" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="includeFuelSurcharge" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="includeSecuritySurcharge" type="xsd:boolean" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="calculateCostResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="cost" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="gstCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="fuelSurcharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="securitySurcharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="transitWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyCharge" type="xsd:decimal" minOccurs="0"/>
+                        <xsd:element name="riskWarrantyValue" type="xsd:decimal" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="calculateEstimatedTimeRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:TransactionHeaderType"/>
+                        <xsd:element name="senderLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="receiverLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="serviceCode" type="ns3:serviceCodeType"/>
+                        <xsd:element name="choice" type="ns3:choiceType"/>
+                        <xsd:element name="validateAddress" type="xsd:boolean" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="calculateEstimatedTimeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="eta" type="xsd:dateTime" minOccurs="0"/>
+                        <xsd:element name="etd" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_calculateEstimatedTimeRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="senderLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="receiverLocation" type="prim:ExtLocationDetailsType"/>
+                        <xsd:element name="serviceCode" type="ns3:serviceCodeType"/>
+                        <xsd:element name="choice" type="ns3:choiceType"/>
+                        <xsd:element name="validateAddress" type="xsd:boolean" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/MasterData/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/MasterData/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:complexType name="DepotType">
+                <xsd:sequence>
+                    <xsd:element name="depotCode" type="prim:depotCode"/>
+                    <xsd:element name="depotName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="depotAbbreviation" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="adminDepotCode" type="prim:depotCode" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="FreightItemIncidentType">
+                <xsd:sequence>
+                    <xsd:element name="freightItemIncidentCode" type="prim:freightItemIncidentCode"/>
+                    <xsd:element name="freightItemIncidentDescription" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="LocationType">
+                <xsd:sequence>
+                    <xsd:element name="locationId" type="prim:locationId" minOccurs="0"/>
+                    <xsd:element name="locationDetails" type="prim:LocationDetailsType" minOccurs="0"/>
+                    <xsd:element name="nearestDepotCode" type="prim:depotCode" minOccurs="0"/>
+                    <xsd:element name="primaryAirDepotCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="secondaryAirDepotCode" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="QCCodeType">
+                <xsd:sequence>
+                    <xsd:element name="qcCode" type="prim:qcCode"/>
+                    <xsd:element name="qcDescription" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="isSelectable" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="ScanModeType">
+                <xsd:sequence>
+                    <xsd:element name="scanMode" type="prim:ScanModeHeaderType"/>
+                    <xsd:element name="scanDescription" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="TransitStateType">
+                <xsd:sequence>
+                    <xsd:element name="transitStateHeader" type="prim:TransitStateHeaderType"/>
+                    <xsd:element name="transitStateDescription" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="unitTypeType">
+                <xsd:sequence>
+                    <xsd:element name="unitType" type="prim:unitType"/>
+                    <xsd:element name="unitDescription" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="unitRank" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="publiclyViewable" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="isDefault" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="sortOrder" type="xsd:integer" minOccurs="0"/>
+                    <xsd:element name="isBulk" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/actions/externals/MasterData/v1" xmlns:md="http://startrackexpress/Common/MasterData/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/actions/externals/MasterData/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/MasterData/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:complexType name="depotType">
+                <xsd:complexContent>
+                    <xsd:extension base="md:DepotType">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="getDepotCutOffTimeComplex">
+                <xsd:complexContent>
+                    <xsd:extension base="prim:depotCutOffTimeComplex">
+                        <xsd:sequence>
+                            <xsd:element name="adminDepotCode" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="locationType">
+                <xsd:complexContent>
+                    <xsd:extension base="md:LocationType">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                            <xsd:element name="visualSuburb" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="qCCodeType">
+                <xsd:complexContent>
+                    <xsd:extension base="md:QCCodeType">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="scanModeType">
+                <xsd:complexContent>
+                    <xsd:extension base="md:ScanModeType">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="serviceCodeComplex">
+                <xsd:complexContent>
+                    <xsd:extension base="prim:serviceCodeComplex">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                            <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="simpleLocationType">
+                <xsd:attribute name="lastUpdated" type="xsd:dateTime"/>
+                <xsd:attribute name="nearestDepotCode" type="xsd:string"/>
+                <xsd:attribute name="postCode" type="xsd:string"/>
+                <xsd:attribute name="state" type="xsd:string"/>
+                <xsd:attribute name="suburb" type="xsd:string"/>
+                <xsd:attribute name="visualSuburb" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="transitStateType">
+                <xsd:complexContent>
+                    <xsd:extension base="md:TransitStateType">
+                        <xsd:sequence>
+                            <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:element name="getDepotsRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="depotCode" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getDepotsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="depot" type="ns0:getDepotCutOffTimeComplex" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getLocationsRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="locationDetails" type="prim:LocationDetailsType"/>
+                        <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getLocationsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="location" type="ns0:simpleLocationType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getNearestDepotRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="locationDetails" type="prim:LocationDetailsType"/>
+                        <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getNearestDepotResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="depot" type="ns0:depotType" minOccurs="0"/>
+                        <xsd:element name="locations" type="ns0:locationType" minOccurs="0" maxOccurs="2"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getQCCodesRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="code" type="prim:qcCode" minOccurs="0"/>
+                        <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getQCCodesResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="qcCodes" type="ns0:qCCodeType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getServiceCodesRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="code" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="lastUpdated" type="xsd:dateTime" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getServiceCodesResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="codes" type="ns0:serviceCodeComplex" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="validateAddressRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="address" type="prim:addressComplex" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="validateAddressResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="exactMatchFound" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="matchedAddress" type="prim:matchedAddressComplex" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://startrackexpress/Common/Booking/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" targetNamespace="http://startrackexpress/Common/Booking/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xs:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xs:complexType name="bookedPickupType">
+                <xs:sequence>
+                    <xs:element name="bookingId" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The booking number.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="createdDateTime" type="xs:dateTime">
+                        <xs:annotation>
+                            <xs:documentation>The date and time the booking was created.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="pickupDate" type="xs:date">
+                        <xs:annotation>
+                            <xs:documentation>The booked date. In some cases this wiill not be the same date requested in the booking</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupAccountType">
+                <xs:sequence>
+                    <xs:element name="accountNumber" type="prim:accountNumber"/>
+                    <xs:element name="businessUnit" type="prim:businessUnit"/>
+                    <xs:element name="accountName" type="xs:string" minOccurs="0" maxOccurs="2"/>
+                    <xs:element name="status" type="xs:string"/>
+                    <xs:element name="pinRequired" type="xs:boolean"/>
+                    <xs:element name="costCentreRequired" type="xs:boolean"/>
+                    <xs:element name="employeeIDRequired" type="xs:boolean"/>
+                    <xs:element name="purchaseOrderRequired" type="xs:boolean"/>
+                    <xs:element name="customerReferenceRequired" type="xs:boolean"/>
+                    <xs:element name="stopTrade" type="xs:boolean"/>
+                    <xs:element name="customerAuthorisation" minOccurs="0" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="authorisationType" type="xs:string"/>
+                                <xs:element name="mustValidate" type="xs:boolean"/>
+                                <xs:element name="isRequired" type="xs:boolean"/>
+                                <xs:element name="allowedValue" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupBookingType">
+                <xs:sequence>
+                    <xs:element name="serviceCode" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The service code, eg EXP, BAG</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="payerAccountNo" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>The account number for the payer. Required.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="bookingSource" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Please use the following value for this element: DIR</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="consignmentId" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The consignment id for the booking. In almost all cases, this is optional and should not be populated.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="isPrePaid" type="xs:boolean" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Whether the consignment is prepaid or not. Defaults to false.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="pickupDetails" type="ns9:pickupLocationDetailsType"/>
+                    <xs:element name="deliveryDetails" type="ns9:pickupLocationDetailsType" minOccurs="0"/>
+                    <xs:element name="specialInstructions" type="xs:string" minOccurs="0" maxOccurs="2"/>
+                    <xs:element name="pickupDate" type="xs:date" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The requested date for the pickup</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="timeReady" type="xs:time" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The time when the freight will be ready for collection</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="timeClosing" type="xs:time"/>
+                    <xs:element name="connoteRequired" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="isPrivateAddress" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="branchPrintLabels" type="xs:boolean" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Used if the branch is required to print labels instead of the sender. Used for controlled returns, defaults to false.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="costCentre" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Reserved</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="employeeID" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Reserved</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="purchaseOrder" type="xs:string" minOccurs="0"/>
+                    <xs:element name="pickupFreightItems" type="ns9:pickupFreightItemGroupType" maxOccurs="unbounded"/>
+                    <xs:element name="heaviestItemWeight" type="xs:decimal" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupCutoffTime">
+                <xs:sequence>
+                    <xs:element name="payerAccountNo" type="xs:string" minOccurs="0"/>
+                    <xs:element name="serviceCode" type="xs:string"/>
+                    <xs:element name="pickupDate" type="xs:date" minOccurs="0"/>
+                    <xs:element name="pickupLocation" type="prim:addressComplex"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupFreightItemGroupType">
+                <xs:sequence>
+                    <xs:element name="quantity" type="xs:integer" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The quantity of this particular item</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="weight" type="xs:decimal" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>In kilograms</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="height" type="xs:integer" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>In millimetres</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="width" type="xs:integer" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>In millimetres</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="length" type="xs:integer" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>In millimetres</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="unitType" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>A description of the item, eg CARTON</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupLocationComplex">
+                <xs:sequence>
+                    <xs:element name="index" type="xs:string" minOccurs="0"/>
+                    <xs:element name="accountNumber" type="prim:accountNumber"/>
+                    <xs:element name="businessUnit" type="xs:string"/>
+                    <xs:element name="pickupCompanyName" type="xs:string" minOccurs="0"/>
+                    <xs:element name="pickupContact" type="xs:string" minOccurs="0"/>
+                    <xs:element name="pickupAddress" type="prim:addressComplex" minOccurs="0"/>
+                    <xs:element name="pickupPhoneNumber" type="xs:string" minOccurs="0"/>
+                    <xs:element name="pickupEmailAddress" type="xs:string" minOccurs="0"/>
+                    <xs:element name="pickupPoint" type="xs:string" minOccurs="0"/>
+                    <xs:element name="closingTime" type="xs:time" minOccurs="0"/>
+                    <xs:element name="airCutoffTime" type="xs:time" minOccurs="0"/>
+                    <xs:element name="roadCutoffTime" type="xs:time" minOccurs="0"/>
+                    <xs:element name="nearestDepotCode" type="prim:depotCode" minOccurs="0"/>
+                    <xs:element name="auspostLodgement" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="regularPickup" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="pickupIdentificationRequired" type="xs:string" minOccurs="0"/>
+                    <xs:element name="locationTimezone" type="xs:string" minOccurs="0"/>
+                    <xs:element name="currentTimeAtLocation" type="xs:time" minOccurs="0"/>
+                    <xs:element name="timePassed" type="xs:boolean" minOccurs="0"/>
+                    <xs:element name="nextBusinessDay" type="xs:date" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="pickupLocationDetailsType">
+                <xs:sequence>
+                    <xs:element name="companyName" type="xs:string" minOccurs="0"/>
+                    <xs:element name="contactName" type="xs:string" minOccurs="0"/>
+                    <xs:element name="contactPhone" type="xs:string" minOccurs="0"/>
+                    <xs:element name="contactMobilePhone" type="xs:string" minOccurs="0"/>
+                    <xs:element name="contactEmailAddress" type="xs:string" minOccurs="0"/>
+                    <xs:element name="contactPoint" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The point at which the freight must be collected or delivered. eg RECEPTION, DOCK</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="locationDetails" type="prim:addressComplex"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/actions/externals/Consignment/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:img="http://startrackexpress/Common/Imaging/v1" xmlns:acc="http://startrackexpress/Common/Account/v1" xmlns:freight="http://startrackexpress/Common/FreightProcessing/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/actions/externals/Consignment/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/FreightProcessing/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Imaging/v1"/>
+            <xsd:import namespace="http://startrackexpress/Common/Account/v1"/>
+            <xsd:complexType name="choiceType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentId" type="ns4:consignmentIdType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="senderReferenceNumber" type="ns4:referenceNoType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="consignmentDefType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="10"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="consignmentIdType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="30"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="consignmentStatusType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="10"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="consignmentStatusesType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="total" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="consignmentTypesType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="total" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="despatchChoiceType">
+                <xsd:sequence>
+                    <xsd:element name="serviceType" type="prim:serviceTypeEnum" maxOccurs="3"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string"/>
+                    <xsd:element name="despatchDate" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="despatchLocationCodeType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="10"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="freightItemIdType">
+                <xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            <xsd:complexType name="getConsignmentDetailChoiceType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentId" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="despatch" type="ns4:despatchChoiceType" minOccurs="0"/>
+                    <xsd:element name="includeEvents" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="matchingConsignmentsType">
+                <xsd:sequence>
+                    <xsd:element name="payerAccountNumber" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="total" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="personSearchType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="suburb" type="ns4:suburbType" minOccurs="0"/>
+                    <xsd:element name="state" type="ns4:stateType" minOccurs="0"/>
+                    <xsd:element name="postCode" type="ns4:postCodeType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="postCodeType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="5"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="referenceNoType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="30"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="searchConsignmentRequestType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentType" type="ns4:consignmentDefType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="despatchFromDate" type="xsd:date"/>
+                    <xsd:element name="despatchToDate" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaFromDate" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="etaToDate" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="deliveryFromDate" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="deliveryToDate" type="xsd:dateTime" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="searchConsignmentType">
+                <xsd:sequence>
+                    <xsd:element name="id" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="source" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchDate" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="payerAccountNumber" type="prim:accountNumber" minOccurs="0"/>
+                    <xsd:element name="etaDate" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="payerType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiver" type="freight:receiverType" minOccurs="0"/>
+                    <xsd:element name="references" type="freight:referenceType" minOccurs="0"/>
+                    <xsd:element name="lastStatusDatetime" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="podSignatoryName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="dangerousGoods" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="podSignature" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:simpleType name="serviceCodeType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="10"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="stateType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="4"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType name="suburbType">
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="50"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="tp_choiceType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentId" type="ns4:consignmentIdType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="senderReferenceNumber" type="ns4:referenceNoType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="tp_consignmentType">
+                <xsd:sequence>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="secondaryQcCode" type="prim:qcCode" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="receiver" type="ns4:tp_partnerType" minOccurs="0"/>
+                    <xsd:element name="sender" type="ns4:tp_partnerType" minOccurs="0"/>
+                    <xsd:element name="specialInstructions" type="xsd:string" minOccurs="0" maxOccurs="4"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="references" type="freight:referenceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="statusHistory" type="freight:statusHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="trackingEvents" type="freight:consignmentTrackingEventType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="lineItems" type="freight:lineItemType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="dangerousGoods" type="freight:DGType" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:attribute name="billedInd" type="xsd:boolean"/>
+                <xsd:attribute name="bookInNotAfter" type="xsd:dateTime"/>
+                <xsd:attribute name="bookInNotBefore" type="xsd:dateTime"/>
+                <xsd:attribute name="carrierCode" type="xsd:string"/>
+                <xsd:attribute name="consolidate" type="xsd:boolean"/>
+                <xsd:attribute name="consolidateSendersReference" type="xsd:boolean"/>
+                <xsd:attribute name="creationDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="deliveryDepot" type="xsd:string"/>
+                <xsd:attribute name="despatchDate" type="xsd:date"/>
+                <xsd:attribute name="despatchDepot" type="xsd:string"/>
+                <xsd:attribute name="despatchNotification" type="xsd:boolean"/>
+                <xsd:attribute name="despatchSummaryId" type="xsd:string"/>
+                <xsd:attribute name="driverCube" type="xsd:decimal"/>
+                <xsd:attribute name="etaDate" type="xsd:dateTime"/>
+                <xsd:attribute name="id" type="xsd:string"/>
+                <xsd:attribute name="labelText" type="xsd:string"/>
+                <xsd:attribute name="labelText_2" type="xsd:string"/>
+                <xsd:attribute name="labelText_3" type="xsd:string"/>
+                <xsd:attribute name="lastStatusDateTime" type="xsd:dateTime"/>
+                <xsd:attribute name="lock_seq" type="xsd:string"/>
+                <xsd:attribute name="payerType" type="xsd:string"/>
+                <xsd:attribute name="podSignatoryName" type="xsd:string"/>
+                <xsd:attribute name="podSignature" type="xsd:string"/>
+                <xsd:attribute name="publishedQcCode" type="prim:qcCode"/>
+                <xsd:attribute name="quotationNumber" type="xsd:string"/>
+                <xsd:attribute name="requestService" type="xsd:boolean"/>
+                <xsd:attribute name="source" type="xsd:string"/>
+                <xsd:attribute name="status" type="xsd:string"/>
+                <xsd:attribute name="totalQuantity" type="xsd:integer"/>
+                <xsd:attribute name="totalVolume" type="xsd:double"/>
+                <xsd:attribute name="totalWeight" type="xsd:double"/>
+                <xsd:attribute name="type" type="xsd:string"/>
+                <xsd:attribute name="unitType" type="xsd:string"/>
+                <xsd:attribute name="userName" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="tp_partnerType">
+                <xsd:attribute name="addressLine1" type="xsd:string"/>
+                <xsd:attribute name="addressLine2" type="xsd:string"/>
+                <xsd:attribute name="addressLine3" type="xsd:string"/>
+                <xsd:attribute name="country" type="xsd:string"/>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="name" type="xsd:string"/>
+                <xsd:attribute name="postCode" type="xsd:string"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+                <xsd:attribute name="state" type="xsd:string"/>
+                <xsd:attribute name="suburb" type="xsd:string"/>
+            </xsd:complexType>
+            <xsd:complexType name="tp_searchConsignmentType">
+                <xsd:sequence>
+                    <xsd:element name="id" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="source" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchDate" type="xsd:date" minOccurs="0"/>
+                    <xsd:element name="etaDate" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="payerType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="despatchLocationCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiver" type="ns4:tp_partnerType" minOccurs="0"/>
+                    <xsd:element name="lastStatusDatetime" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="podSignatoryName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="dangerousGoods" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="fault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fs_code" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_category" type="prim:faultCategoryType" minOccurs="0"/>
+                        <xsd:element name="fs_severity" type="prim:faultSeverityType" minOccurs="0"/>
+                        <xsd:element name="fs_timestamp" type="xsd:dateTime" minOccurs="0"/>
+                        <xsd:element name="fs_message" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_logicalComponentId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_physicalComponentId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_system" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_correlationId" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fs_faultPayload" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getConsignmentDetailRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:TransactionHeaderType"/>
+                        <xsd:element name="consignmentId" type="ns4:consignmentIdType" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getConsignmentDetailResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="consignment" type="freight:consignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="searchConsignmentsRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:TransactionHeaderType"/>
+                        <xsd:element name="choice" type="ns4:choiceType" minOccurs="0"/>
+                        <xsd:element name="consignmentType" type="ns4:searchConsignmentRequestType" minOccurs="0"/>
+                        <xsd:element name="serviceCode" type="ns4:serviceCodeType" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="consignmentStatus" type="ns4:consignmentStatusType" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="receiver" type="ns4:personSearchType" minOccurs="0"/>
+                        <xsd:element name="sender" type="ns4:personSearchType" minOccurs="0"/>
+                        <xsd:element name="despatchLocationCode" type="ns4:despatchLocationCodeType" maxOccurs="unbounded"/>
+                        <xsd:element name="dangerousGoodsOnly" type="xsd:boolean" minOccurs="0"/>
+                        <xsd:element name="pagination" type="prim:paginationType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="searchConsignmentsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="consignmentSummary" type="ns4:searchConsignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="pagination" type="prim:paginationType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_getConsignmentDetailRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="consignmentId" type="ns4:consignmentIdType" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_getConsignmentDetailResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="consignment" type="ns4:tp_consignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_getFreightItemDetailRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="freightItemId" type="xsd:string" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_getFreightItemDetailResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="consignment" type="ns4:tp_consignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_searchConsignmentsRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="header" type="prim:tp_TransactionHeaderType"/>
+                        <xsd:element name="choice" type="ns4:tp_choiceType"/>
+                        <xsd:element name="pagination" type="prim:paginationType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tp_searchConsignmentsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="consignmentSummary" type="ns4:tp_searchConsignmentType" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="pagination" type="prim:paginationType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/Account/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/Account/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:complexType name="accountType">
+                <xsd:sequence>
+                    <xsd:element name="number" type="prim:accountNumber" minOccurs="0"/>
+                    <xsd:element name="businessUnit" type="prim:businessUnit" minOccurs="0"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="billingAddress" type="prim:addressComplex" minOccurs="0"/>
+                    <xsd:element name="physicalAddress" type="prim:addressComplex" minOccurs="0"/>
+                    <xsd:element name="certifiedAirFreightIndicator" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="riskWarrantyLevel" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="serviceCode" type="ns10:getServiceCodeType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="unitType" type="ns10:getUnitTypeType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="despatchFreightAllowed" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="customerType">
+                <xsd:sequence>
+                    <xsd:element name="id" type="prim:customerId" minOccurs="0"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="dgsAllowed" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="carrier" type="prim:carrierComplex" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="contactAddress" type="prim:addressComplex" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="despatchCustomerType">
+                <xsd:sequence>
+                    <xsd:element name="id" type="prim:customerId" minOccurs="0"/>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="dgsAllowed" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="carrier" type="prim:carrierComplex" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="getServiceCodeType">
+                <xsd:sequence>
+                    <xsd:element name="code" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="getUnitTypeType">
+                <xsd:sequence>
+                    <xsd:element name="unitType" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="lock_seq" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="receiverType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="2"/>
+                </xsd:sequence>
+                <xsd:attribute name="despatchLocationCode" type="xsd:string"/>
+                <xsd:attribute name="despatchNotification" type="xsd:boolean"/>
+                <xsd:attribute name="id" type="prim:receiverId"/>
+                <xsd:attribute name="shortName" type="xsd:string"/>
+            </xsd:complexType>
+        </xsd:schema>
+        <xsd:schema xmlns="http://startrackexpress/Common/Imaging/v1" xmlns:prim="http://startrackexpress/Common/Primitives/v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://startrackexpress/Common/Imaging/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+            <xsd:import namespace="http://startrackexpress/Common/Primitives/v1"/>
+            <xsd:complexType name="imageContentType">
+                <xsd:sequence>
+                    <xsd:element name="base64Content" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="fileFormat" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="imageType">
+                <xsd:sequence>
+                    <xsd:element name="id" type="prim:imageId" minOccurs="0"/>
+                    <xsd:element name="creationDateTime" type="xsd:dateTime" minOccurs="0"/>
+                    <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="imageContent" type="ns11:imageContentType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="storeImageType">
+                <xsd:sequence>
+                    <xsd:element name="consignmentId" type="xsd:string"/>
+                    <xsd:element name="receiverName1" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverName2" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverAddressLine1" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverAddressLine2" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverAddressLine3" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverAddressSuburb" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="quantityConsigned" type="xsd:int"/>
+                    <xsd:element name="deliveredQuantity" type="xsd:int"/>
+                    <xsd:element name="deliveryDateAndTime" type="xsd:dateTime"/>
+                    <xsd:element name="deliveryCode" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="reason" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="receiverSignatoryName" type="xsd:string"/>
+                    <xsd:element name="recieverSignatureCoordinates" type="xsd:string"/>
+                    <xsd:element name="specialInstructions" type="xsd:string" minOccurs="0" maxOccurs="4"/>
+                    <xsd:element name="senderReferences" type="xsd:string" minOccurs="0" maxOccurs="6"/>
+                    <xsd:element name="signatureRequired" type="xsd:boolean"/>
+                    <xsd:element name="noManifestData" type="xsd:boolean"/>
+                    <xsd:element name="signedOnAttachment" type="xsd:boolean"/>
+                    <xsd:element name="damaged" type="xsd:boolean"/>
+                    <xsd:element name="senderName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="senderLocation" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </wsdl:types>
+    <wsdl:service name="ExternalOps">
+        <wsdl:port name="OperationsEndpoint1" binding="tns:OperationsEndpoint1Binding">
+            <soap:address location="https://services.startrackexpress.com.au:443/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1"/>
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:portType name="Operations">
+        <wsdl:operation name="getDepots">
+            <wsdl:input message="tns:getDepotsRequest"/>
+            <wsdl:output message="tns:getDepotsResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getPickupCutoffTimes">
+            <wsdl:input message="tns:getPickupCutoffTimesRequest"/>
+            <wsdl:output message="tns:getPickupCutoffTimesResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="validateAddress">
+            <wsdl:input message="tns:validateAddressRequest"/>
+            <wsdl:output message="tns:validateAddressResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="calculateEstimatedTime">
+            <wsdl:input message="tns:calculateEstimatedTimeRequest"/>
+            <wsdl:output message="tns:calculateEstimatedTimeResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getLocations">
+            <wsdl:input message="tns:getLocationsRequest"/>
+            <wsdl:output message="tns:getLocationsResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getNearestDepot">
+            <wsdl:input message="tns:getNearestDepotRequest"/>
+            <wsdl:output message="tns:getNearestDepotResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="searchConsignments">
+            <wsdl:input message="tns:searchConsignmentsRequest"/>
+            <wsdl:output message="tns:searchConsignmentsResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getConsignmentDetails">
+            <wsdl:input message="tns:getConsignmentDetailsRequest"/>
+            <wsdl:output message="tns:getConsignmentDetailsResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceCodes">
+            <wsdl:input message="tns:getServiceCodesRequest"/>
+            <wsdl:output message="tns:getServiceCodesResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="createPickupBooking">
+            <wsdl:input message="tns:createPickupBookingRequest"/>
+            <wsdl:output message="tns:createPickupBookingResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="calculateCost">
+            <wsdl:input message="tns:calculateCostRequest"/>
+            <wsdl:output message="tns:calculateCostResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="getQCCodes">
+            <wsdl:input message="tns:getQCCodesRequest"/>
+            <wsdl:output message="tns:getQCCodesResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+        <wsdl:operation name="calculateCostAndEstimatedTime">
+            <wsdl:input message="tns:calculateCostAndEstimatedTimeRequest"/>
+            <wsdl:output message="tns:calculateCostAndEstimatedTimeResponse"/>
+            <wsdl:fault name="fault1" message="tns:fault"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="OperationsEndpoint1Binding" type="tns:Operations">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="getDepots">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getDepots"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPickupCutoffTimes">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getPickupCutoffTimes"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="validateAddress">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//validateAddress"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="calculateEstimatedTime">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1/calculateEstimatedTime"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getLocations">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getLocations"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getNearestDepot">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getNearestDepot"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="searchConsignments">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1/searchConsignments"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getConsignmentDetails">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1/getConsignmentDetails"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceCodes">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getServiceCodes"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createPickupBooking">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//createPickupBooking"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="calculateCost">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1/calculateCost"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getQCCodes">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent//getQCCodes"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="calculateCostAndEstimatedTime">
+            <soap:operation style="document" soapAction="/DMZExternalService/InterfaceServices/ExternalOps.serviceagent/OperationsEndpoint1/calculateCostAndEstimatedTime"/>
+            <wsdl:input>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" parts="parameters"/>
+            </wsdl:output>
+            <wsdl:fault name="fault1">
+                <soap:fault use="literal" name="fault1"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:message name="getDepotsRequest">
+        <wsdl:part name="parameters" element="ns0:getDepotsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getDepotsResponse">
+        <wsdl:part name="parameters" element="ns0:getDepotsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="fault">
+        <wsdl:part name="parameters" element="ns1:fault"/>
+    </wsdl:message>
+    <wsdl:message name="getPickupCutoffTimesRequest">
+        <wsdl:part name="parameters" element="ns2:getPickupCutoffTimesRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getPickupCutoffTimesResponse">
+        <wsdl:part name="parameters" element="ns2:getPickupCutoffTimesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="validateAddressRequest">
+        <wsdl:part name="parameters" element="ns0:validateAddressRequest"/>
+    </wsdl:message>
+    <wsdl:message name="validateAddressResponse">
+        <wsdl:part name="parameters" element="ns0:validateAddressResponse"/>
+    </wsdl:message>
+    <wsdl:message name="calculateEstimatedTimeRequest">
+        <wsdl:part name="parameters" element="ns3:calculateEstimatedTimeRequest"/>
+    </wsdl:message>
+    <wsdl:message name="calculateEstimatedTimeResponse">
+        <wsdl:part name="parameters" element="ns3:calculateEstimatedTimeResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getLocationsRequest">
+        <wsdl:part name="parameters" element="ns0:getLocationsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getLocationsResponse">
+        <wsdl:part name="parameters" element="ns0:getLocationsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getNearestDepotRequest">
+        <wsdl:part name="parameters" element="ns0:getNearestDepotRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getNearestDepotResponse">
+        <wsdl:part name="parameters" element="ns0:getNearestDepotResponse"/>
+    </wsdl:message>
+    <wsdl:message name="searchConsignmentsRequest">
+        <wsdl:part name="parameters" element="ns4:searchConsignmentsRequest"/>
+    </wsdl:message>
+    <wsdl:message name="searchConsignmentsResponse">
+        <wsdl:part name="parameters" element="ns4:searchConsignmentsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getConsignmentDetailsRequest">
+        <wsdl:part name="parameters" element="ns4:getConsignmentDetailRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getConsignmentDetailsResponse">
+        <wsdl:part name="parameters" element="ns4:getConsignmentDetailResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getServiceCodesRequest">
+        <wsdl:part name="parameters" element="ns0:getServiceCodesRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getServiceCodesResponse">
+        <wsdl:part name="parameters" element="ns0:getServiceCodesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="createPickupBookingRequest">
+        <wsdl:part name="parameters" element="ns2:createPickupBookingRequest"/>
+    </wsdl:message>
+    <wsdl:message name="createPickupBookingResponse">
+        <wsdl:part name="parameters" element="ns2:createPickupBookingResponse"/>
+    </wsdl:message>
+    <wsdl:message name="calculateCostRequest">
+        <wsdl:part name="parameters" element="ns3:calculateCostRequest"/>
+    </wsdl:message>
+    <wsdl:message name="calculateCostResponse">
+        <wsdl:part name="parameters" element="ns3:calculateCostResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getQCCodesRequest">
+        <wsdl:part name="parameters" element="ns0:getQCCodesRequest"/>
+    </wsdl:message>
+    <wsdl:message name="getQCCodesResponse">
+        <wsdl:part name="parameters" element="ns0:getQCCodesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="calculateCostAndEstimatedTimeRequest">
+        <wsdl:part name="parameters" element="ns3:calculateCostAndEstimatedTimeRequest"/>
+    </wsdl:message>
+    <wsdl:message name="calculateCostAndEstimatedTimeResponse">
+        <wsdl:part name="parameters" element="ns3:calculateCostAndEstimatedTimeResponse"/>
+    </wsdl:message>
+</wsdl:definitions>
