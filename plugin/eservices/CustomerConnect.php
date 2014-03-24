@@ -8,7 +8,7 @@
 
 // THIS FILE IS A PART OF THE SAMPLE CUSTOMER APPLICATIONS AND IS NOT PART OF THE eSERVICES API.
 // CUSTOMER-WRITTEN APPLICATIONS MAY INCORPORATE THESE CLASSES FOR CONVENIENCE, MODIFIED AS NECESSARY.
-
+/*
 require_once("eServices.php");								// Import the StarTrack PHP API - do not modify that file
 
 // define("USER_INACCESSIBLE_PATH", "C:/XAMPP/cgi-bin/");		// ****** MODIFY AS REQUIRED ******
@@ -108,7 +108,7 @@ class ConnectDetails
 		}
 	}
 }
-
+*/
 // class globalJSONCache
 // // Callback class for eServices.php
 // // Used when customer wishes to implement global caching of JSON reference files for performance reasons, 

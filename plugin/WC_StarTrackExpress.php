@@ -1,5 +1,9 @@
 <?php
 class WC_StarTrack_Express extends WC_Shipping_Method {
+    /** @var array Array of validation successes. */
+    public $validations = array();
+    
+    
     /**
      * Constructor for StarTrack shipping class
      *
@@ -18,10 +22,13 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->title                = "StarTrack Express"; // This can be added as an setting but for this example its forced.
         
         $this->service_pref_option  = $this->id.'_service_preferences';
+        $this->matched_suburb_option = $this->id.'_matched_suburb';
+        $this->matched_state_option = $this->id.'_matched_state';
 
         // Save settings in admin if you have any defined
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_service_preferences' ) );
+        add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'form_checks' ) );
         
         
         $this->init();
@@ -39,65 +46,34 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
         
         $this->enabled      = $this->get_option( 'enabled'      );
-        $this->account_no   = $this->get_option( 'account_no'   );
-        $this->access_key   = $this->get_option( 'access_key'   );
-        $this->username     = $this->get_option( 'username'     );
-        $this->password     = $this->get_option( 'password'     );
-        $this->p_path       = $this->get_option( 'protected_path');
+        $this->s_path       = $this->get_option( 'secure_path');
         $this->wsdl_file    = $this->get_option( 'wsdl_file'    );
         
-        // $this->sender_addr  = $this->get_option( 'sender_addr'  );
-        // $this->sender_suburb= $this->get_option( 'sender_suburb');
-        // $this->sender_state = $this->get_option( 'sender_state' );
         
         $this->connection   = array(
-            'username'      => $this->username,
-            'password'      => $this->password,
-            'userAccessKey' => $this->access_key,
-            'wsdlFilespec'  => $this->p_path . $this->wsdl_file,
+            'username'      => $this->get_option('username'),
+            'password'      => $this->get_option('password'),
+            'userAccessKey' => $this->get_option('access_key'),
+            'wsdlFilespec'  => $this->s_path . $this->wsdl_file,
         );
 		If(WP_DEBUG) error_log( "Connection: ".serialize($this->connection) );
 		
         $this->header = array(
             'source'        => 'TEAM',
-            'accountNo'     => $this->account_no,
+            'accountNo'     => $this->get_option('account_no'),
             'userAccessKey' => $this->connection['userAccessKey']
         );
 		If(WP_DEBUG) error_log( "Header: ".serialize($this->header) );
 		
         $this->sender_location = array(
 			'postCode' 		=> $this->get_option( 'sender_pcode' ),
-			'state'         => "",
-			'suburb'        => "",
+			'state'         => $this->get_option( 'sender_state' ),
+			'suburb'        => $this->get_option( 'sender_suburb' ),
 		);
 		
-		// Validate sender location
-		$request = array(
-			'parameters' => array(
-				'header'    => $this->header,
-				'address'   => $this->sender_location,
-			)
-		);
-		try {
-			If(WP_DEBUG) error_log( "validating postCode from settings: " . serialize($request));
-			$oC = new STEeService();
-			$response = $oC->invokeWebService($this->connection,'validateAddress', $request);
-			
-			If(WP_DEBUG) error_log( "response: " . serialize($response) );
-			//fill in sender location with first matched location
-			if($response->matchedAddress) {
-				$this->sender_location['suburb'] = $response->matchedAddress[0]->suburbOrLocation;
-				$this->sender_location['state']  = $response->matchedAddress[0]->state;
-			}   
-		}
-		catch (SoapFault $e) {
-			If(WP_DEBUG) error_log( "Soapfault! " . serialize( get_object_vars ($e) ) );
-			$response = false;
-			//TODO: add admin message: could not contact StarTrack eServices.
-		}       		
-		
-		
+        $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->get_option('forced_SSL_ver'));
     }
+    
     
     /**
      * Initialise Gateway Settings Form Fields
@@ -111,6 +87,20 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'label'         => __('Enable this shipping method', 'woocommerce'),
                 // 'description'   => '',
                 'default'       => 'no'
+            ),
+            'secure_path'   => array (
+                'title'         => __('Secure path', 'wootrack'),
+                'type'          => 'text',
+                'description'   => __('location of secure directory where starTrack files are stored (slash-terminated)'),
+                'desc_tip'      => true,
+                'default'       => '/public_html/cgi_bin/',
+            ),
+            'wsdl_file'     => array(
+                'title'         => __('WSDL File Spec', 'wootrack'),
+                'type'          => 'text',
+                'description'   => __('Location of the WSDL XML file within the secure path', 'wootrack'),         
+                'desc_tip'      => true,
+                'default'       => 'eServicesStagingWSDL.xml'
             ),
             'account_no'    => array(
                 // 'class'         => 'StarTrack Account',
@@ -140,12 +130,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 // 'description'   => '',                
                 'default'       => 'Tay12345'
             ),
-            'protected_path'=> array (
-                'title'         => __('Protected path', 'wootrack'),
+            'forced_SSL_ver'=> array{
+                'title'         => __('Forced SSL version', 'wootrack'),
                 'type'          => 'text',
-                'description'   => __('location of protected directory where sensitive config files are stored'),
+                'description'   => __('Version of SSL to use when communicating with Star Track'),
                 'desc_tip'      => true,
-                'default'       => '/public_html/cgi_bin/',
+                'default'       => '3',
             ),
             // 'forced_SSL_ver'=> array{
                 // 'title'         => __('Forced SSL version', 'wootrack'),
@@ -154,13 +144,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 // 'desc_tip'      => true,
                 // 'default'       => '3',
             // ),
-            'wsdl_file'     => array(
-                'title'         => __('WSDL File Spec', 'wootrack'),
-                'type'          => 'text',
-                'description'   => __('Location of the WSDL XML file within the protected path', 'wootrack'),         
-                'desc_tip'      => true,
-                'default'       => 'C:\xampp\cgi-bin\eServicesStagingWSDL.xml'
-            ),
             // 'sender_addr'   => array(
                 // // 'class'         => 'Sender\'s location',            
                 // 'title'         => __('Sender\'s Address', 'wootrack'),
@@ -193,10 +176,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         );
     }
     
-    // public function validate_settings_fields( $form_fields = false ){
-        // parent::validate_settings_fields($form_fields);
-        
-    // }
     
     public function admin_options() {
         global $woocommerce;
@@ -243,37 +222,16 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $prefs = get_option($this->service_pref_option, false);
             
             ?>
-			
-			<tr valign="top">
-				<th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
+            
+            <tr valign="top">
+                <th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
                 <td>
-                    <p><strong><?php echo __('Protected path', 'wootrack') . '<br>'; ?></strong>
-                    <?php 
-                        $p_path = $this->get_option('protected_path');
-                        // $status = [
-                            // 'is_dir'        => is_dir(      $path),
-                            // 'is_readable'   => is_readable( $path),
-                            // 'is_writeable'  => is_writeable($path),
-                        // ];
-                        echo __('Is a valid directory', 'wootrack') . ': ' . (is_dir(      $p_path)?'Y':'N') . '<br>';
-                        echo __('we have read access',  'wootrack') . ': ' . (is_readable( $p_path)?'Y':'N') . '<br>';
-                        echo __('we have write access', 'wootrack') . ': ' . (is_writeable($p_path)?'Y':'N') ;
-                    ?></p>
-                    <p><strong><?php echo __('Connection to eServices API', 'wootrack') . '<br>'; ?></strong>
+                    <p><strong><?php echo __('Connection to eServices', 'wootrack') . '<br>'; ?></strong>
                     <?php
                         echo $response?'Y':'N';
                     ?></p>
-                    <p><strong><?php echo __('Matched Suburb', 'wootrack') . '<br>'; ?></strong>
-                    <?php
-                        if($this->sender_location['suburb'] != '') {
-                            echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
-                        } else {
-                            _e('No matched location. Press save settings to refresh', 'wootrack');
-                        }
-                    ?></p>
                 </td>
-			</tr>           
-			
+            </tr>
             
             <tr valign="top">
                 <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
@@ -374,11 +332,82 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                     
                     return false;
                 });
+                
+                // Highlight Errors
+                <?php 
+                    foreach (errors as $k => $v) {
+                        echo 'jQuery("input#'. $this->plugin_id . $this->id . '_' . $k . '")'.
+                            '.css("border-color", "#edca9e");';
+                    }
+                ?>
+                <?php 
+                    foreach (validations as $k => $v) {
+                        echo 'jQuery("input#'. $this->plugin_id . $this->id . '_' . $k . '")'.
+                            '.css("border-color", "#ed9eca");';
+                    }
+                ?>                
             });
         </script>
         <?php
-    }          
- 
+    }  
+    
+    function form_checks(){
+        check_secure_path();
+        check_wsdl_file();
+        check_sender_pcode();
+    }
+    
+    function check_secure_path() {
+        if( !is_dir( $this->s_path) ){
+            $this->errors['secure_path'] = __('This is not a valid directory', 'wootrack');
+        } else if( !is_readable( $s_path) ) {
+            $this->errors['secure_path'] = __('PHP does not have read access to this directory', 'wootrack');
+        } /*else if( !is_writeable($s_path) ) {
+            $this->errors['secure_path'] = __('PHP does not have write access to this directory', 'wootrack');
+        }*/ else {
+            //$this->validated['secure_path'];
+        }
+    }
+    
+    function check_wsdl_file(){
+        if( !is_readable( $s_path) ) {
+            $this->errors['secure_path'] = __('PHP does not have read access to this directory', 'wootrack');
+        } else {
+            //$this->validated['wsdl_file'];
+        }
+    }
+    
+    function check_sender_pcode() {
+        $request = array(
+			'parameters' => array(
+				'header'    => $this->header,
+				'address'   => $this->array(
+                    'postCode' => get_option('sender_pcode'),
+                    'state'    => '',
+                    'suburb'   => '',
+                ),
+			),
+		);
+    
+        try {
+			$response = $this->oC->invokeWebService($this->connection,'validateAddress', $request);
+			//TODO: add admin message: could not contact StarTrack eServices.
+		}
+		catch (SoapFault $e) {
+			$response = false;
+		}
+        if($response){
+            update_option($this->matched_pcode_option, $response->matchedAddress[0]->suburbOrLocation);
+            update_option($this->matched_state_option, $response->matchedAddress[0]->state);
+        } else {
+            update_option($this->matched_pcode_option, '');
+            update_option($this->matched_state_option, '');
+            $this->errors['sender_pcode'] = __('could not match postcode','wootrack');
+        }
+    }
+    
+    //function validate_startrack_connection() {
+        
     function process_service_preferences() {
         $service_pref_code  = array();
         $service_pref_name  = array();
@@ -395,6 +424,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }    
     
     //TODO: postcode and username validation
+    
     
     public function calculateShippingParams($contents){
         //default values for parameters
@@ -432,22 +462,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      * @return void
      */
     public function calculate_shipping( $package ) {
-
-        // If(WP_DEBUG) error_log('here comes the package:');
-        // //error_log(strtr(serialize($package),array(';'=>";\n",'{'=>"{\n",'}'=>"\n}\n")));
-
-        // If(WP_DEBUG) error_log("-> contents:");
-        // foreach($package['contents'] as $k => $v){
-            // If(WP_DEBUG) error_log(
-                // '    ' . implode(', ',
-                    // array(
-                        // $v['product_id'],
-                        // $v['variation_id'],
-                        // $v['quantity']
-                    // )
-                // )
-            // );
-        // }
 
         If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
         
@@ -519,10 +533,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                             'serviceCode'       => $code,
                             'noOfItems'         => $params['noOfItems'], 
                             'weight'            => $params['weight'   ],
-                            // 'weight'            => 5.0,
-                            //THIS IS IN CM
                             'volume'            => $params['volume'   ],
-                            // 'volume'            => 0.01,
                         )
                     );
 					
