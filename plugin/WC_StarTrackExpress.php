@@ -407,8 +407,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     function calculateShippingParams($contents){
         //default values for parameters
         $params = array(
-            'weight'    => 1,
-            'volume'    => 0.1,
+            'weight'    => 0,
+            'volume'    => 0,
             'noOfItems' => 1,
         );
         foreach($contents as $line){
