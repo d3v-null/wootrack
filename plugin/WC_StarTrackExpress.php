@@ -70,7 +70,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 			'state'         => $this->get_option( 'sender_state' ),
 			'suburb'        => $this->get_option( 'sender_suburb' ),
 		);
-		
+        
+		include_once('eServices.php');
         $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->get_option('forced_SSL_ver'));
     }
     
@@ -155,8 +156,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $this->generate_settings_html();
             
             // Get available services from StarTrack
-            include_once('eServices/eServices.php');
-            include_once('eServices/CustomerConnect.php');
+            
             
             try {
                 $response = $this->oC->invokeWebService(

@@ -29,8 +29,7 @@
     If not, see http://www.gnu.org/licenses/gpl-3.0.html
 */
 
-include_once('eServices/eServices.php');
-include_once('eServices/CustomerConnect.php');
+//include_once('eServices.php');
 
 $Wootrack_minimalRequiredPhpVersion = '5.0';
 
