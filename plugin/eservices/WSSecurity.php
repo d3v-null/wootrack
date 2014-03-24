@@ -65,7 +65,7 @@ class WSSoapClient extends SoapClient
     
     public function __setSSLForce($ver, $cacert){
         $this->SSLForce = $ver;
-        $this->cacert   = $cacert
+        $this->cacert   = $cacert;
     }
 
 	// Overrides the original method, adding the security header

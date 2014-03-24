@@ -41,15 +41,15 @@ define("ERRORSTRING", "*Error*");
 
 class STEeService		
 {	
-    private s_path;
-    private wsdl_file;
-    private forced_SSL_ver;
+    private $s_path;
+    private $wsdl_file;
+    private $forced_SSL_ver;
     
-    public function __construct(string secure_path, string wsdl_file, string forced_SSL_ver){
+    public function __construct( $secure_path, $wsdl_file, $forced_SSL_ver){
         //TO DO : assert secure_path is / terminated
-        $this->s_path       = secure_path;
-        $this->wsdl_file    = wsdl_file;
-        $this->forced_SSL_ver     = forced_SSL_ver;
+        $this->s_path           = $secure_path;
+        $this->wsdl_file        = $wsdl_file;
+        $this->forced_SSL_ver   = $forced_SSL_ver;
     }
 	
     public function invokeWebService(array $connection, $operation, array $request)
