@@ -150,6 +150,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     public function admin_options() {
         global $woocommerce;
         ?>
+        <div id="wrapper" style="display:block">
+        <div id="main" style="float:left; display:block">
         <h3><?php echo ( ! empty( $this->method_title ) ) ? $this->method_title : __( 'Settings', 'woocommerce' ) ; ?></h3>
         <?php echo ( ! empty( $this->method_description ) ) ? wpautop( $this->method_description ) : ''; ?>
         <table class="form-table">
@@ -336,6 +338,23 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                           
             });
         </script>
+        </div>
+        <div id="wootrack-sidebar" style="float:right; width=20%; display:block">
+            <div class="wootrack-section">
+                <div class="wootrack-section-title stuffbox">
+                    <h3><?php _e('About this Plugin', 'wootrack'); ?></h3>
+                </div>
+                <div class="wootrack-inputs">
+                    <ul>
+                        <li>
+                            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2PF5FGAHHBFU2&lc=AU&item_name=Laserphile%20Developers&currency_code=AUD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"><img
+                                    width="16" height="16" src="<?php echo $plugin_url ?>/images/pp_favicon_x.ico"><?php _e('Donate with Paypal', 'wootrack'); ?></a></li>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        </div>
         <?php
     }  
     
