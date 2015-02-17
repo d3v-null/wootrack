@@ -65,6 +65,8 @@ class STEeService
                 'features' => SOAP_SINGLE_ELEMENT_ARRAYS
             );
 
+            // if(WP_DEBUG) error_log("Creating oClient with s_path ".$this->s_path." and wsdl_file ".$this->wsdl_file );
+
             $oClient = new WSSoapClient($this->s_path . $this->wsdl_file, $clientArguments);	
             
             $oClient->__setUsernameToken($connection['username'], $connection['password']);	

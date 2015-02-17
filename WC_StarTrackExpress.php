@@ -175,6 +175,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
             catch (SoapFault $e) {
                 $response = false;
+                // if(WP_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
                 //TODO: add admin message: could not contact StarTrack eServices.
             }
             
