@@ -65,20 +65,41 @@ class STEeService
                 'features' => SOAP_SINGLE_ELEMENT_ARRAYS
             );
 
-            // if(WP_DEBUG) error_log("Creating oClient with s_path ".$this->s_path." and wsdl_file ".$this->wsdl_file );
+            if(WP_DEBUG) {
+                error_log("Creating oClient");
+                error_log(" -> s_path: ".$this->s_path);
+                error_log(" -> wsdl_file: ".$this->wsdl_file);
+                error_log(" -> clientArguments: ".serialize($clientArguments) );
+            }
 
             $oClient = new WSSoapClient($this->s_path . $this->wsdl_file, $clientArguments);	
             
             $oClient->__setUsernameToken($connection['username'], $connection['password']);	
             
+            if(WP_DEBUG) {
+                error_log("setting username token");
+                error_log(" -> username: ". $connection['username']);
+                error_log(" -> password: ". $connection['password']);
+            }
+
             if($this->forced_SSL_ver){
                 $oClient->__setSSLForce($this->forced_SSL_ver, $this->s_path . 'cacert.crt' );
             }
 
+            if(WP_DEBUG) {
+                error_log("making soapcall");
+                error_log(" -> operation: ".serialize($operation));
+                error_log(" -> request: ".serialize($request));
+            }
             return $oClient->__soapCall($operation, $request);																				
         }
         catch (SoapFault $e)
         {
+            if(WP_DEBUG){
+                error_log("Caught soapfault: ");
+                error_log(" -> faultcode: " . $e->faultcode);
+                error_log(" -> faultstring: " . $e->faultstring);
+            } 
             throw new SoapFault($e->faultcode, $e->faultstring, NULL, "");//$e->detail);
             // It is left to the caller to handle this exception as desired
         }

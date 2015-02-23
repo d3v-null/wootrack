@@ -166,6 +166,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 $response = $this->oC->invokeWebService(
                     $this->connection,
                     'getServiceCodes',
+                    // 'requestPayload',
                     array(
                         'parameters' => array(
                             'header' => $this->header
@@ -175,7 +176,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
             catch (SoapFault $e) {
                 $response = false;
-                // if(WP_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+                if(WP_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
                 //TODO: add admin message: could not contact StarTrack eServices.
             }
             
