@@ -332,7 +332,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 <?php 
                     foreach ($this->errors as $k => $v) {
                 ?> 
-                        //hello
                         jQuery("input#<?php echo $this->plugin_id.$this->id.'_'.$k; ?>").append("<?php echo $v; ?>");
                 <?php
                     }
