@@ -33,6 +33,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         // add_action( 'woocommerce_update_options_shipping_'.$this->id, array( $this, 'check_secure_path' ) );
         // add_action( 'woocommerce_update_options_shipping_'.$this->id, array( $this, 'check_wsdl_file' ) );
         // add_action( 'woocommerce_update_options_shipping_'.$this->id, array( $this, 'check_sender_pcode' ) );
+        // add_action( 'woocommerce_before_checkout_form', array( $this, 'check_startrack_connection' ) );
+       
         
         $this->init();
     }
@@ -75,6 +77,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         
 		include_once('eServices.php');
         $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->get_option('forced_SSL_ver'));
+
+        $this->check_startrack_connection();
     }
     
     
@@ -176,7 +180,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
             catch (SoapFault $e) {
                 $response = false;
-                if(WP_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+                if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
                 //TODO: add admin message: could not contact StarTrack eServices.
             }
             
@@ -193,6 +197,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             // $prefs = $this->wootrack->getTable('service_preferences');
             $prefs = get_option($this->service_pref_option, false);
             
+            echo "loading startrack peferences..";
+
             ?>
             
             <tr valign="top">
@@ -362,7 +368,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }  
     
     function admin_notice(){
-        If(WP_DEBUG) error_log("ADMIN NOTICED CALLED errors: ".serialize($this->errors));
+        If(WOOTAN_DEBUG) error_log("ADMIN NOTICED CALLED errors: ".serialize($this->errors));
     ?>
         <div class="error">           
     <?php    
@@ -377,14 +383,35 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         
     
     //TO DO: 
-    function display_errors(){
-        add_action('admin_notices',array(__CLASS__,'admin_notice'));
-        // foreach($this->errors as $k => $v){
-            // add_action('admin_notices',create_function('',
-                // "echo '<div class=\"updated\"><p>".$v."</p></div>';"
-            // ));
-            // // $woocommerce->addMessage( $v );
-            // wc_add_notice("DERP");
+    function check_startrack_connection(){
+        global $post;
+        if(WOOTAN_DEBUG) error_log("post: ".serialize($post));
+        if($this->enabled){
+            try {
+                $response = $this->oC->invokeWebService(
+                    $this->connection,
+                    'getServiceCodes',
+                    // 'requestPayload',
+                    array(
+                        'parameters' => array(
+                            'header' => $this->header
+                        )
+                    )
+                );
+            }
+            catch (SoapFault $e) {
+                $response = false;
+                if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+                //TODO: add admin message: could not contact StarTrack eServices.
+            }
+
+            if(!$response){
+                if(WOOTAN_DEBUG) error_log("adding wc notice");
+                $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
+                wc_print_notice($notice_string, 'notice');
+
+            }
+        }
     }
 
     function validate_secure_path_field( $key ) {
@@ -430,6 +457,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         }
         catch (SoapFault $e) {
             //TODO: add admin message: could not contact StarTrack eServices.
+            if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices validateAddress: ".$e);
             $response = false;
         }      
         
@@ -448,6 +476,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }    
     
     function validate_sender_pcode_field( $key ) {
+        $pcode = "";
         if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
             $pcode = wp_kses_post( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) );
         
@@ -507,7 +536,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
         }
         
-        If(WP_DEBUG) error_log( "Shipping params: \n".serialize($params) );
+        If(WOOTAN_DEBUG) error_log( "Shipping params: \n".serialize($params) );
         
         return $params;
     }
@@ -524,7 +553,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      */
     function calculate_shipping( $package ) {
 
-        If(WP_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
+        If(WOOTAN_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
         
         $destination = $package['destination'];
         
@@ -536,7 +565,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 return;
             }
             
-            //If(WP_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
+            //If(WOOTAN_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
             
             $prefs = get_option($this->service_pref_option, false);
             $params = $this->calculateShippingParams($package['contents']);
@@ -554,7 +583,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                     )
                 );
                 
-                If(WP_DEBUG) error_log( "request: \n".serialize($request) );
+                If(WOOTAN_DEBUG) error_log( "request: \n".serialize($request) );
 
                 try {
                     $response = $this->oC->invokeWebService($this->connection,'calculateCost', $request);
@@ -569,13 +598,13 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 }
                 catch (SoapFault $e) {
                     $response = false;
-                    If(WP_DEBUG) error_log( "Exception in calculateCost, " . $e );
-                    If(WP_DEBUG) error_log( "details: " . $e->getMessage() );
+                    If(WOOTAN_DEBUG) error_log( "Exception in calculateCost, " . $e );
+                    If(WOOTAN_DEBUG) error_log( "details: " . $e->getMessage() );
                     //TODO: add admin message: could not contact StarTrack eServices.
                 }
                 
-                If(WP_DEBUG) error_log( "response: \n".serialize($response) );
-                // If(WP_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
+                If(WOOTAN_DEBUG) error_log( "response: \n".serialize($response) );
+                // If(WOOTAN_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
             }
         }
     }
