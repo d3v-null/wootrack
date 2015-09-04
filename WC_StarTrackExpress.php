@@ -20,7 +20,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->method_title         = __( 'StarTrack Express' );  // Title shown in admin
         $this->method_description   = __( 'Send by StarTrack Express road freight' ); // Description shown in admin
 
-        $this->enabled              = "yes"; // This can be added as an setting but for this example its forced enabled
+        // $this->enabled              = "yes"; // This can be added as an setting but for this example its forced enabled
         $this->title                = "StarTrack Express"; // This can be added as an setting but for this example its forced.
         
         $this->service_pref_option  = $this->id.'_service_preferences';
@@ -50,36 +50,102 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
         
-        $this->enabled      = $this->get_option( 'enabled'          );
-        $this->s_path       = $this->get_option( 'secure_path'      );
-        $this->wsdl_file    = $this->get_option( 'wsdl_file'        );
+        $this->enabled      =  $this->get_option( 'enabled'          );
+        $this->s_path       =  $this->get_option( 'secure_path'      );
+        $this->wsdl_file    =  $this->get_option( 'wsdl_file'        );
         
         $this->connection   = array(
-            'username'      => $this->get_option( 'username'        ),
-            'password'      => $this->get_option( 'password'        ),
-            'userAccessKey' => $this->get_option( 'access_key'      ),
+            'username'      => $this->get_option( 'username'         ),
+            'password'      => $this->get_option( 'password'         ),
+            'userAccessKey' => $this->get_option( 'access_key'       ),
             'wsdlFilespec'  => $this->s_path . $this->wsdl_file,
         );
 		
         $this->header = array(
             'source'        => 'TEAM',
-            'accountNo'     => $this->get_option( 'account_no'      ),
+            'accountNo'     => $this->get_option( 'account_no'       ),
             'userAccessKey' => $this->connection[ 'userAccessKey']
         );
 		
         $this->sender_location = array(
-			'postCode' 		=> $this->get_option( 'sender_pcode'    ),
+			'postCode' 		=> $this->get_option( 'sender_pcode'     ),
 			// 'state'         => $this->get_option( $this->matched_state_option, "NOTSET" ),
 			// 'suburb'        => $this->get_option( $this->matched_suburb_option, "NOTSET" ),
-			'state'         => $this->get_option( 'sender_state' ),
-			'suburb'        => $this->get_option( 'sender_suburb' ),
+			'state'         => $this->get_option( 'sender_state'     ),
+			'suburb'        => $this->get_option( 'sender_suburb'    ),
 		);
+
+        $this->forced_SSL_ver = $this->get_option('forced_SSL_ver'   );
         
 		include_once('eServices.php');
-        $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->get_option('forced_SSL_ver'));
-
-        $this->check_startrack_connection();
+        $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->forced_SSL_ver);
     }
+
+    public function is_connected(){
+        $is_connected =  $this->get_option( 'is_connected'     );
+        $last_check   =  intval($this->get_option( 'last_check' ));
+        $check_rate   =  intval($this->get_option( 'check_rate' ));
+        $now = time();
+        if(!$last_check or $now - $last_check > $check_rate ){
+            //update if it's connected
+            $is_connected = $this->check_startrack_connection();
+        }
+        return $is_connected;
+    }
+
+    public function invokeWebService($operation, $request = NULL)
+    // wrapper for startrack's invokeWebService
+    {
+        $_procedure = "INVOKEWEBSERVICE: ";
+
+        if(!$this->oC) {
+            if(WOOTRACK_DEBUG) error_log($_procedure."cannot invokeWebService with no \$oC");
+            return;
+        }
+        if(!$this->connection){
+            if(WOOTRACK_DEBUG) error_log($_procedure."cannot invokeWebService with no \$connection");
+            return;
+        }
+        if(!$operation){
+            if(WOOTRACK_DEBUG) error_log($_procedure."cannot invokeWebService with no \$operation");
+            return;
+        }
+        if(!$request or !is_array($request)){
+            if(!$this->header){
+                if(WOOTRACK_DEBUG) error_log($_procedure."cannot invokeWebService with no \$header");
+                return;
+            }
+            $request = array(
+                'parameters' => array(
+                    'header' => $this->header
+                )
+            );
+        }
+
+        try {
+            if(WOOTRACK_DEBUG) {
+                error_log("making soapcall");
+                error_log(" -> username: ". $this->connection['username']);
+                error_log(" -> password: ". $this->connection['password']);
+                error_log(" -> operation: ".serialize($operation));
+                error_log(" -> request: ".serialize($request));
+            }
+            $response = $this->oC->invokeWebService(
+                $this->connection,
+                $operation,
+                $request
+            );
+        } catch (SoapFault $e) {
+            if(WOOTRACK_DEBUG){
+                error_log("Caught soapfault: ");
+                error_log(" -> faultcode: " . $e->faultcode);
+                error_log(" -> faultstring: " . $e->faultstring);
+            } 
+            throw new SoapFault($e->faultcode, $e->faultstring, NULL, "");//$e->detail);
+            $response = NULL;
+        }
+        return $response;
+    }    
     
     
     /**
@@ -147,10 +213,157 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'desc_tip'      => true,                
                 'default'       => ''
             ),
+            'check_rate'    => array(
+                'title'         => __('Connection Check Rate', 'wootrack'),
+                'type'          => 'text',
+                'description'   => __('The rate at which the startrack connection is checked', 'wootrack'),
+                'default'       => 10
+            ),
         );
     }
     
+    public function validate_settings_fields( $form_fields = array() ){
+        parent::validate_settings_fields($form_fields);
+
+        // $this->environment_check();
+    }
     
+    public function generate_extra_settings_html() {
+        try {
+            $response = $this->invokeWebService('getServiceCodes');
+        }
+        catch (SoapFault $e) {
+            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            //TODO: add admin message: could not contact StarTrack eServices.
+        }
+        
+        $services = array();
+        if($response){
+            foreach($response->codes as $code) {
+                if( $code->isDefault) {
+                    $services[$code->serviceCode] =$code->serviceDescription;
+                }
+            }
+        }
+        
+        // Generate the HTML for the service preferences form.
+        // $prefs = $this->wootrack->getTable('service_preferences');
+        $prefs = get_option($this->service_pref_option, false);
+
+        ?>
+<tr valign="top">
+    <th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
+    <td>
+        <p><strong><?php echo __('Secure path', 'wootrack').': '.$this->s_path.'<br>'; ?></strong>
+        <?php 
+            // $status = [
+                // 'is_dir'        => is_dir(      $path),
+                // 'is_readable'   => is_readable( $path),
+                // 'is_writeable'  => is_writeable($path),
+            // ];
+            echo __('Is a valid directory', 'wootrack') . ': ' . (is_dir(      $this->s_path)?'Y':'N') . '<br>';
+            echo __('we have read access',  'wootrack') . ': ' . (is_readable( $this->s_path)?'Y':'N') . '<br>';
+            echo __('we have write access', 'wootrack') . ': ' . (is_writeable($this->s_path)?'Y':'N') ;
+        ?></p>
+        <p><strong><?php echo __('WSDL File', 'wootrack').': '.$this->s_path.$this->wsdl_file.'<br>'; ?></strong>
+        <?php
+            echo 'readable: '.(is_readable($this->s_path.$this->wsdl_file)?'Y':'N');
+        ?></p>
+        <p><strong><?php echo __('eServices API', 'wootrack') . '<br>'; ?></strong>
+        <?php
+            echo 'connection: '.($response?'Y':'N');
+        ?></p>
+        <p><strong><?php echo __('Matched Suburb', 'wootrack') . '<br>'; ?></strong>
+        <?php
+            if($this->sender_location['suburb'] != '') {
+                echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
+            } else {
+                _e('No matched location. Press save settings to refresh', 'wootrack');
+            }
+        ?></p>
+    </td>
+</tr>           
+
+
+<tr valign="top">
+    <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
+    <td class="forminp" id="<?php echo $this->id; ?>_services">
+        <table class="shippingrows widefat" cellspacing="0">
+            <thead>
+                <tr>
+                    <th class="check-column"><input type="checkbox"></th>
+                    <th class="service_code"><?php _e('Service Code', 'wootrack'); ?></th>
+                    <th class="service_name"><?php _e('Service Name', 'wootrack'); ?></th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th colspan=3>
+                        <select id="select_service">
+                            <option value="">Select a service</option>
+                            <?php
+                                foreach($services as $code => $desc){
+                                    //TODO: exclude options already in table
+                                    echo "<option value='$code'>$desc</option>";
+                                }
+                            ?>
+                        </select>
+                        <a class="add button"> <?php _e('Add service', 'wootrack'); ?></a>
+                        <a class="remove button"><?php _e('Remove selected services', 'wootrack'); ?></a>
+                    </th>
+                </tr>
+            </tfoot>
+            <tbody>
+            <?php 
+            $i = -1;
+            if($prefs) foreach($prefs as $code => $name){
+                $i++;
+            ?>
+                <tr class="service">
+                    <td class="check-column">
+                        <input type="checkbox" name="select" />
+                    </td>
+                    <td class="service_code">
+                        <input type="text" value="<?php echo $code; ?>" readonly="readonly"
+                               name="<?php echo esc_attr( $this->id.'_code['.$i.']' ); ?>" />                                    
+                    </td>
+                    <td class="service_name">
+                        <input type="text" value="<?php echo $name; ?>"
+                               name="<?php echo esc_attr( $this->id.'_name['.$i.']' ); ?>" />
+                    </td>
+                </tr>
+            <?php 
+            } 
+            ?>
+            </tbody>
+        </table><!--/.service-preferences-table-->
+    </td>
+</tr>
+        <?php
+    }
+
+    public function generate_sidebar_html(){
+        ?>
+<div id="wootrack-sidebar" style="float:right; width:20%;">
+    <div class="wootrack-section">
+        <div class="wootrack-section-title stuffbox">
+            <h3><?php _e('About this Plugin', 'wootrack'); ?></h3>
+        </div>
+        <div class="wootrack-inputs">
+            <ul>
+                <li>
+                    <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2PF5FGAHHBFU2&lc=AU&item_name=Laserphile%20Developers&currency_code=AUD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"><img
+                            width="16" height="16" src="<?php 
+                                $plugin_url = WP_CONTENT_URL . '/plugins/' . plugin_basename(dirname(__FILE__));
+                                echo $plugin_url ?>/images/pp_favicon_x.ico"><?php _e('Donate with Paypal', 'wootrack'); ?></a></li>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>        
+        <?php
+    }
+
     public function admin_options() {
         global $woocommerce;
         ?>
@@ -160,135 +373,14 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         <?php echo ( ! empty( $this->method_description ) ) ? wpautop( $this->method_description ) : ''; ?>
         <table class="form-table">
         <?php
+            $this->environment_check();
+
             // Generate the HTML for the settings form.
             $this->generate_settings_html();
             
-            // Get available services from StarTrack
-            
-            
-            try {
-                $response = $this->oC->invokeWebService(
-                    $this->connection,
-                    'getServiceCodes',
-                    // 'requestPayload',
-                    array(
-                        'parameters' => array(
-                            'header' => $this->header
-                        )
-                    )
-                );
-            }
-            catch (SoapFault $e) {
-                $response = false;
-                if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
-                //TODO: add admin message: could not contact StarTrack eServices.
-            }
-            
-            $services = array();
-            if($response){
-                foreach($response->codes as $code) {
-                    if( $code->isDefault) {
-                        $services[$code->serviceCode] =$code->serviceDescription;
-                    }
-                }
-            }
-            
-            // Generate the HTML for the service preferences form.
-            // $prefs = $this->wootrack->getTable('service_preferences');
-            $prefs = get_option($this->service_pref_option, false);
-            
-            echo "loading startrack peferences..";
-
-            ?>
-            
-            <tr valign="top">
-				<th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
-                <td>
-                    <p><strong><?php echo __('Secure path', 'wootrack').': '.$this->s_path.'<br>'; ?></strong>
-                    <?php 
-                        // $status = [
-                            // 'is_dir'        => is_dir(      $path),
-                            // 'is_readable'   => is_readable( $path),
-                            // 'is_writeable'  => is_writeable($path),
-                        // ];
-                        echo __('Is a valid directory', 'wootrack') . ': ' . (is_dir(      $this->s_path)?'Y':'N') . '<br>';
-                        echo __('we have read access',  'wootrack') . ': ' . (is_readable( $this->s_path)?'Y':'N') . '<br>';
-                        echo __('we have write access', 'wootrack') . ': ' . (is_writeable($this->s_path)?'Y':'N') ;
-                    ?></p>
-                    <p><strong><?php echo __('WSDL File', 'wootrack').': '.$this->s_path.$this->wsdl_file.'<br>'; ?></strong>
-                    <?php
-                        echo 'readable: '.(is_readable($this->s_path.$this->wsdl_file)?'Y':'N');
-                    ?></p>
-                    <p><strong><?php echo __('eServices API', 'wootrack') . '<br>'; ?></strong>
-                    <?php
-                        echo 'connection: '.($response?'Y':'N');
-                    ?></p>
-                    <p><strong><?php echo __('Matched Suburb', 'wootrack') . '<br>'; ?></strong>
-                    <?php
-                        if($this->sender_location['suburb'] != '') {
-                            echo( $this->sender_location['suburb'].", ".$this->sender_location['state'] );
-                        } else {
-                            _e('No matched location. Press save settings to refresh', 'wootrack');
-                        }
-                    ?></p>
-                </td>
-			</tr>           
-            
-            
-            <tr valign="top">
-                <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
-                <td class="forminp" id="<?php echo $this->id; ?>_services">
-                    <table class="shippingrows widefat" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th class="check-column"><input type="checkbox"></th>
-                                <th class="service_code"><?php _e('Service Code', 'wootrack'); ?></th>
-                                <th class="service_name"><?php _e('Service Name', 'wootrack'); ?></th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan=3>
-                                    <select id="select_service">
-                                        <option value="">Select a service</option>
-                                        <?php
-                                            foreach($services as $code => $desc){
-                                                //TODO: exclude options already in table
-                                                echo "<option value='$code'>$desc</option>";
-                                            }
-                                        ?>
-                                    </select>
-                                    <a class="add button"> <?php _e('Add service', 'wootrack'); ?></a>
-                                    <a class="remove button"><?php _e('Remove selected services', 'wootrack'); ?></a>
-                                </th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                        <?php 
-                        $i = -1;
-                        if($prefs) foreach($prefs as $code => $name){
-                            $i++;
-                        ?>
-                            <tr class="service">
-                                <td class="check-column">
-                                    <input type="checkbox" name="select" />
-                                </td>
-                                <td class="service_code">
-                                    <input type="text" value="<?php echo $code; ?>" readonly="readonly"
-                                           name="<?php echo esc_attr( $this->id.'_code['.$i.']' ); ?>" />                                    
-                                </td>
-                                <td class="service_name">
-                                    <input type="text" value="<?php echo $name; ?>"
-                                           name="<?php echo esc_attr( $this->id.'_name['.$i.']' ); ?>" />
-                                </td>
-                            </tr>
-                        <?php 
-                        } 
-                        ?>
-                        </tbody>
-                    </table><!--/.service-preferences-table-->
-                </td>
-            </tr>
+            // Get available services from StarTrack and display them
+            if($this->is_connected()) $this->generate_extra_settings_html();  
+        ?>
         </table><!--/.form-table-->
         <script type="text/javascript">
             jQuery(function() {
@@ -347,71 +439,92 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         </script>
     </div><!--/main-->
     <div id="wootrack-sidebar" style="float:right; width:20%;">
-        <div class="wootrack-section">
-            <div class="wootrack-section-title stuffbox">
-                <h3><?php _e('About this Plugin', 'wootrack'); ?></h3>
-            </div>
-            <div class="wootrack-inputs">
-                <ul>
-                    <li>
-                        <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2PF5FGAHHBFU2&lc=AU&item_name=Laserphile%20Developers&currency_code=AUD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"><img
-                                width="16" height="16" src="<?php 
-                                    $plugin_url = WP_CONTENT_URL . '/plugins/' . plugin_basename(dirname(__FILE__));
-                                    echo $plugin_url ?>/images/pp_favicon_x.ico"><?php _e('Donate with Paypal', 'wootrack'); ?></a></li>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+        <?php $this->generate_sidebar_html(); ?>
+    </div><!--/wootrack-sidebar-->
 </div><!--/wrapper-->
         <?php
     }  
     
     function admin_notice(){
-        If(WOOTAN_DEBUG) error_log("ADMIN NOTICED CALLED errors: ".serialize($this->errors));
-    ?>
-        <div class="error">           
-    <?php    
+        If(WOOTRACK_DEBUG) error_log("ADMIN NOTICE CALLED errors: ".serialize($this->errors));
+    
+        echo '<div class="error">';
         foreach($this->errors as $k => $v){
             echo '<p>'.$v.'</p>';
         }
         echo '<p>derp</p>';
-    ?>
-        </div>
-    <?php
+        echo '</div>';
     }
-        
-    
-    //TO DO: 
-    function check_startrack_connection(){
-        global $post;
-        if(WOOTAN_DEBUG) error_log("post: ".serialize($post));
-        if($this->enabled){
-            try {
-                $response = $this->oC->invokeWebService(
-                    $this->connection,
-                    'getServiceCodes',
-                    // 'requestPayload',
-                    array(
-                        'parameters' => array(
-                            'header' => $this->header
-                        )
-                    )
-                );
-            }
-            catch (SoapFault $e) {
-                $response = false;
-                if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
-                //TODO: add admin message: could not contact StarTrack eServices.
-            }
 
-            if(!$response){
-                if(WOOTAN_DEBUG) error_log("adding wc notice");
-                $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
-                wc_print_notice($notice_string, 'notice');
+    public function get_admin_notice($notice) {
+        return '<div class="error">
+                <p>' . $notice . '</p>
+            </div>';
+    }
 
-            }
+    /**
+     * environment_check function.
+     *
+     * @access public
+     * @return void
+     */
+    private function environment_check() {
+        global $woocommerce;
+
+        if ( get_woocommerce_currency() != "AUD" ) {
+            $message = __( 'Startrack Shipping Method requires that the currency is set to Australian Dollars.', 'wootan' );
+            // $this->errors['australian_currency'] = $message;
+            echo $this->get_admin_notice( $message );
         }
+
+        elseif ( $woocommerce->countries->get_base_country() != "AU" ) {
+            $message = __( 'Startrack Shipping Method requires that the base country/region is set to Australia.', 'wootan' );
+            // $this->errors['australian_base_country'] = $message;
+            echo $this->get_admin_notice( $message );
+        }
+
+        elseif ( !$this->sender_location['postCode'] and $this->enabled == 'yes' ) {
+            $message = __( 'Startrack Shipping Method is enabled, but the origin postcode has not been set.', 'wootan' );
+            // $this->errors['postcode_not_set'] = $message;
+            echo $this->get_admin_notice( $message );
+        } 
+
+        elseif ( !is_dir( $this->s_path ) and $this->enabled == 'yes' ){
+            $message = __( 'Startrack Shipping Method is enabled, but the secure_path is not a valid directory', 'wootan' );
+            // $this->errors['invalid_secure_path'] = $message;
+            echo $this->get_admin_notice( $message );
+        }
+
+        elseif ( !is_readable( $this->s_path ) and $this->enabled == 'yes' ){
+            __( 'Startrack Shipping Method is enabled, but the secure_path is not a readable directory', 'wootan' ) ;
+            // $this->errors['secure_path_not_readable'] = $message;
+            echo $this->get_admin_notice( $message );
+        }
+
+        elseif ( !file_exists( $this->connection['wsdlFilespec'] ) and $this->enabled == 'yes' ){
+            $message = __( 'Startrack Shipping Method is enabled, but the plugin does not have read access to the wsdl file', 'wootan' ) ;
+            // $this->errors['invalid_wsdl_file'] = $message;
+            echo $this->get_admin_notice( $message );
+        }
+
+        elseif ( !$this->is_connected() and $this->enabled == 'yes' ){
+            $message = __( 'Startrack Shipping Method is enabled, but the plugin could not connect to the StarTrack API. Check your settings and try again.', 'wootan' );
+            // $this->errors['not_connected'] = $message;
+            echo $this->get_admin_notice( $message );
+        }
+    }
+
+    function check_startrack_connection(){
+        try {
+            $response = $this->invokeWebService( 'getServiceCodes' );
+        }
+        catch (SoapFault $e) {
+            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
+            if(!is_admin()) wc_print_notice($notice_string, 'notice');
+            return false;
+        }
+        return true;
     }
 
     function validate_secure_path_field( $key ) {
@@ -443,35 +556,38 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }**/
     
     function get_location( $pcode ){
-        $request = array(
-            'parameters' => array(
-                'header'  => $this->header,
-                'address' => array(
-                    'postCode' => $pcode
-                )
-            )
-        );
-        
-        try {
-            $response = $this->oC->invokeWebService($this->connection,'validateAddress', $request);
-        }
-        catch (SoapFault $e) {
-            //TODO: add admin message: could not contact StarTrack eServices.
-            if(WOOTAN_DEBUG) error_log("could not connect to starTrack eServices validateAddress: ".$e);
-            $response = false;
-        }      
-        
-        $location = array();
+        $_procedure = "GET_LOCATION";
 
-        if( $response && $response->matchedAddress ){
-            $location['postCode'] = $pcode;
-            $location['suburb']   = $response->matchedAddress[0]->suburbOrLocation;
-            $location['state']    = $response->matchedAddress[0]->state;
-        } else {
-            //TODO: add admin message: Could not match postcode
-            return false;
-        }
+        $location = array();
         
+        if($this->is_connected()){
+            $request = array(
+                'parameters' => array(
+                    'header'  => $this->header,
+                    'address' => array(
+                        'postCode' => $pcode
+                    )
+                )
+            );
+
+            try {
+                $response = $this->invokeWebService('validateAddress', $request);
+            }
+            catch (SoapFault $e) {
+                if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
+                $response = false;
+            }      
+            
+            if( $response && $response->matchedAddress ){
+                $location['postCode'] = $pcode;
+                $location['suburb']   = $response->matchedAddress[0]->suburbOrLocation;
+                $location['state']    = $response->matchedAddress[0]->state;
+            } else {
+                //TODO: add admin message: Could not match postcode
+                return false;
+            }
+        }
+
         return $location;
     }    
     
@@ -536,7 +652,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
         }
         
-        If(WOOTAN_DEBUG) error_log( "Shipping params: \n".serialize($params) );
+        If(WOOTRACK_DEBUG) error_log( "Shipping params: \n".serialize($params) );
         
         return $params;
     }
@@ -553,7 +669,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      */
     function calculate_shipping( $package ) {
 
-        If(WOOTAN_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
+        If(WOOTRACK_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
         
         $destination = $package['destination'];
         
@@ -565,46 +681,47 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 return;
             }
             
-            //If(WOOTAN_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
+            //If(WOOTRACK_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
             
             $prefs = get_option($this->service_pref_option, false);
             $params = $this->calculateShippingParams($package['contents']);
 
             foreach($prefs as $code => $name) {                                
-                $request = array(
-                    'parameters' => array(
-                        'header'            => $this->header,
-                        'senderLocation'    => $this->sender_location,
-                        'receiverLocation'  => $receiverLocation,
-                        'serviceCode'       => $code,
-                        'noOfItems'         => $params['noOfItems'], 
-                        'weight'            => $params['weight'   ],
-                        'volume'            => $params['volume'   ],
-                    )
-                );
-                
-                If(WOOTAN_DEBUG) error_log( "request: \n".serialize($request) );
-
-                try {
-                    $response = $this->oC->invokeWebService($this->connection,'calculateCost', $request);
-                    $this->add_rate(
-                        array(
-                            'id'        => $code,
-                            'label'     => $name,
-                            'cost'      => $response->cost,
-                            'calc_tax'  => 'per_item'
+                if($this->is_connected()){
+                    $request = array(
+                        'parameters' => array(
+                            'header'            => $this->header,
+                            'senderLocation'    => $this->sender_location,
+                            'receiverLocation'  => $receiverLocation,
+                            'serviceCode'       => $code,
+                            'noOfItems'         => $params['noOfItems'], 
+                            'weight'            => $params['weight'   ],
+                            'volume'            => $params['volume'   ],
                         )
                     );
-                }
-                catch (SoapFault $e) {
-                    $response = false;
-                    If(WOOTAN_DEBUG) error_log( "Exception in calculateCost, " . $e );
-                    If(WOOTAN_DEBUG) error_log( "details: " . $e->getMessage() );
-                    //TODO: add admin message: could not contact StarTrack eServices.
+
+                    try {
+                        $response = $this->invokeWebService('calculateCost', $request);
+                        $this->add_rate(
+                            array(
+                                'id'        => $code,
+                                'label'     => $name,
+                                'cost'      => $response->cost,
+                                'calc_tax'  => 'per_item'
+                            )
+                        );
+                    }
+                    catch (SoapFault $e) {
+                        $response = false;
+                        If(WOOTRACK_DEBUG) error_log( "Exception in calculateCost, " . $e );
+                        If(WOOTRACK_DEBUG) error_log( "details: " . $e->getMessage() );
+                        //TODO: add admin message: could not contact StarTrack eServices.
+                    }
+                    
                 }
                 
-                If(WOOTAN_DEBUG) error_log( "response: \n".serialize($response) );
-                // If(WOOTAN_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
+                If(WOOTRACK_DEBUG) error_log( "response: \n".serialize($response) );
+                // If(WOOTRACK_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
             }
         }
     }

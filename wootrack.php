@@ -31,6 +31,10 @@
 
 //include_once('eServices.php');
 
+if(!defined('WOOTRACK_DEBUG')){
+  define('WOOTRACK_DEBUG', false);
+}
+
 $Wootrack_minimalRequiredPhpVersion = '5.0';
 
 /**
