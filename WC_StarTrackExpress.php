@@ -5,6 +5,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     /** @var array Array of validation successes. */
     // public $validations = array();
     
+    public $_class = "WC_STE_";
     
     /**
      * Constructor for StarTrack shipping class
@@ -82,21 +83,23 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }
 
     public function is_connected(){
-        $is_connected =  $this->get_option( 'is_connected'     );
-        $last_check   =  intval($this->get_option( 'last_check' ));
-        $check_rate   =  intval($this->get_option( 'check_rate' ));
-        $now = time();
-        if(!$last_check or $now - $last_check > $check_rate ){
-            //update if it's connected
-            $is_connected = $this->check_startrack_connection();
+        $_procedure = $this->_class."INVOKEWEBSERVICE: ";
+
+        if(!isset($this->connected)){
+            $this->connected = $this->check_startrack_connection();
         }
-        return $is_connected;
+        return $this->connected;
     }
 
     public function invokeWebService($operation, $request = NULL)
     // wrapper for startrack's invokeWebService
     {
-        $_procedure = "INVOKEWEBSERVICE: ";
+        $_procedure = $this->_class."INVOKEWEBSERVICE: ";
+
+        if(isset($this->connected) and !$this->connected){
+            if(WOOTRACK_DEBUG) error_log($_procedure."abborting because of previous failed connection");
+            return;
+        }
 
         if(!$this->oC) {
             if(WOOTRACK_DEBUG) error_log($_procedure."cannot invokeWebService with no \$oC");
@@ -124,11 +127,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
         try {
             if(WOOTRACK_DEBUG) {
-                error_log("making soapcall");
-                error_log(" -> username: ". $this->connection['username']);
-                error_log(" -> password: ". $this->connection['password']);
-                error_log(" -> operation: ".serialize($operation));
-                error_log(" -> request: ".serialize($request));
+                error_log($_procedure."making soapcall");
+                error_log($_procedure."username: ". $this->connection['username']);
+                error_log($_procedure."password: ". $this->connection['password']);
+                error_log($_procedure."operation: ".serialize($operation));
+                error_log($_procedure."request: ".serialize($request));
             }
             $response = $this->oC->invokeWebService(
                 $this->connection,
@@ -137,16 +140,29 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             );
         } catch (SoapFault $e) {
             if(WOOTRACK_DEBUG){
-                error_log("Caught soapfault: ");
-                error_log(" -> faultcode: " . $e->faultcode);
-                error_log(" -> faultstring: " . $e->faultstring);
+                error_log($_procedure."Caught soapfault: ");
+                error_log($_procedure."faultcode: " . $e->faultcode);
+                error_log($_procedure."faultstring: " . $e->faultstring);
             } 
             throw new SoapFault($e->faultcode, $e->faultstring, NULL, "");//$e->detail);
+            $this->connected = false;
             $response = NULL;
         }
         return $response;
     }    
-    
+
+    function check_startrack_connection(){
+        try {
+            $response = $this->invokeWebService( 'getServiceCodes' );
+        }
+        catch (SoapFault $e) {
+            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
+            if(!is_admin()) wc_print_notice($notice_string, 'notice');
+            return false;
+        }
+        return true;
+    }
     
     /**
      * Initialise Gateway Settings Form Fields
@@ -228,7 +244,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         // $this->environment_check();
     }
     
-    public function generate_extra_settings_html() {
+    public function generate_extra_settings_html() {        
         try {
             $response = $this->invokeWebService('getServiceCodes');
         }
@@ -512,19 +528,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             // $this->errors['not_connected'] = $message;
             echo $this->get_admin_notice( $message );
         }
-    }
-
-    function check_startrack_connection(){
-        try {
-            $response = $this->invokeWebService( 'getServiceCodes' );
-        }
-        catch (SoapFault $e) {
-            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
-            $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
-            if(!is_admin()) wc_print_notice($notice_string, 'notice');
-            return false;
-        }
-        return true;
     }
 
     function validate_secure_path_field( $key ) {
