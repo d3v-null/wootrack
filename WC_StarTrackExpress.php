@@ -85,6 +85,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     public function is_connected(){
         $_procedure = $this->_class."INVOKEWEBSERVICE: ";
 
+        if(isset($this->bad_environment) and $this->bad_environment){
+            //skip connection check, bad environment
+            $this->connected = false;
+        }
+
         if(!isset($this->connected)){
             $this->connected = $this->check_startrack_connection();
         }
@@ -229,12 +234,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'desc_tip'      => true,                
                 'default'       => ''
             ),
-            'check_rate'    => array(
-                'title'         => __('Connection Check Rate', 'wootrack'),
-                'type'          => 'text',
-                'description'   => __('The rate at which the startrack connection is checked', 'wootrack'),
-                'default'       => 10
-            ),
+            // 'check_rate'    => array(
+            //     'title'         => __('Connection Check Rate', 'wootrack'),
+            //     'type'          => 'text',
+            //     'description'   => __('The rate at which the startrack connection is checked', 'wootrack'),
+            //     'default'       => 10
+            // ),
         );
     }
     
@@ -244,29 +249,15 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         // $this->environment_check();
     }
     
-    public function generate_extra_settings_html() {        
-        try {
-            $response = $this->invokeWebService('getServiceCodes');
-        }
-        catch (SoapFault $e) {
-            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
-            //TODO: add admin message: could not contact StarTrack eServices.
-        }
-        
-        $services = array();
-        if($response){
-            foreach($response->codes as $code) {
-                if( $code->isDefault) {
-                    $services[$code->serviceCode] =$code->serviceDescription;
-                }
-            }
-        }
-        
-        // Generate the HTML for the service preferences form.
-        // $prefs = $this->wootrack->getTable('service_preferences');
-        $prefs = get_option($this->service_pref_option, false);
-
-        ?>
+    public function generate_debug_html() {
+    try {
+        $response = $this->invokeWebService('getServiceCodes');
+    }
+    catch (SoapFault $e) {
+        if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+        //TODO: add admin message: could not contact StarTrack eServices.
+    }
+?>
 <tr valign="top">
     <th colspan scope="row" class="titledesc"><?php _e('Settings validation', 'wootrack'); ?></th>
     <td>
@@ -298,9 +289,33 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
         ?></p>
     </td>
-</tr>           
+</tr>     
+<?         
+    }
 
+    public function generate_services_html() {        
+        try {
+            $response = $this->invokeWebService('getServiceCodes');
+        }
+        catch (SoapFault $e) {
+            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            //TODO: add admin message: could not contact StarTrack eServices.
+        }
+        
+        $services = array();
+        if($response){
+            foreach($response->codes as $code) {
+                if( $code->isDefault) {
+                    $services[$code->serviceCode] =$code->serviceDescription;
+                }
+            }
+        }
+        
+        // Generate the HTML for the service preferences form.
+        // $prefs = $this->wootrack->getTable('service_preferences');
+        $prefs = get_option($this->service_pref_option, false);
 
+        ?>
 <tr valign="top">
     <th scope="row" class="titledesc"><?php _e('Service preferences', 'wootrack'); ?></th>
     <td class="forminp" id="<?php echo $this->id; ?>_services">
@@ -393,9 +408,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
             // Generate the HTML for the settings form.
             $this->generate_settings_html();
+
+            if(WOOTRACK_DEBUG) $this->generate_debug_html();
             
             // Get available services from StarTrack and display them
-            if($this->is_connected()) $this->generate_extra_settings_html();  
+            if($this->is_connected()) $this->generate_services_html();  
         ?>
         </table><!--/.form-table-->
         <script type="text/javascript">
@@ -491,42 +508,49 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $message = __( 'Startrack Shipping Method requires that the currency is set to Australian Dollars.', 'wootan' );
             // $this->errors['australian_currency'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
 
         elseif ( $woocommerce->countries->get_base_country() != "AU" ) {
             $message = __( 'Startrack Shipping Method requires that the base country/region is set to Australia.', 'wootan' );
             // $this->errors['australian_base_country'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
 
         elseif ( !$this->sender_location['postCode'] and $this->enabled == 'yes' ) {
             $message = __( 'Startrack Shipping Method is enabled, but the origin postcode has not been set.', 'wootan' );
             // $this->errors['postcode_not_set'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         } 
 
         elseif ( !is_dir( $this->s_path ) and $this->enabled == 'yes' ){
             $message = __( 'Startrack Shipping Method is enabled, but the secure_path is not a valid directory', 'wootan' );
             // $this->errors['invalid_secure_path'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
 
         elseif ( !is_readable( $this->s_path ) and $this->enabled == 'yes' ){
             __( 'Startrack Shipping Method is enabled, but the secure_path is not a readable directory', 'wootan' ) ;
             // $this->errors['secure_path_not_readable'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
 
         elseif ( !file_exists( $this->connection['wsdlFilespec'] ) and $this->enabled == 'yes' ){
             $message = __( 'Startrack Shipping Method is enabled, but the plugin does not have read access to the wsdl file', 'wootan' ) ;
             // $this->errors['invalid_wsdl_file'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
 
         elseif ( !$this->is_connected() and $this->enabled == 'yes' ){
             $message = __( 'Startrack Shipping Method is enabled, but the plugin could not connect to the StarTrack API. Check your settings and try again.', 'wootan' );
             // $this->errors['not_connected'] = $message;
             echo $this->get_admin_notice( $message );
+            $this->bad_environment = true;
         }
     }
 
