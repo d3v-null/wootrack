@@ -34,9 +34,11 @@ this plugin has been working fine for over a year, however as of a week ago, the
 Debugging
 ---------
 
-Debugging of this plugin can be enabled by setting the WOOTRACK_DEBUG constant in wp-config.php. plugin notices will be written to wp-content/debug.log
+Debugging of this plugin can be enabled by setting the WOOTRACK_DEBUG constant in wp-config.php. 
 
     define('WOOTRACK_DEBUG', true);
+
+plugin notices will be written to wp-content/debug.log and an extra setting validation screen will be seen in the admin page.
 
 Support
 -------
