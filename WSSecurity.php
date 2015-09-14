@@ -27,6 +27,7 @@
 
 class WSSoapClient extends SoapClient
 {
+    public $_class='WSSSOAPCLIENT_';
 	private $username;
 	private $password;
     private $SSLForce;
@@ -72,28 +73,32 @@ class WSSoapClient extends SoapClient
 
 	public function __soapCall($function_name, $arguments, $options=NULL, $input_headers=NULL, &$output_headers=NULL)
 	{
+        $_procedure = $this->_class."SOAPCALL: ";
 		try
 		{
+            if(WOOTRACK_DEBUG) {
+                error_log($_procedure.'function_name: '.serialize($function_name));
+                error_log($_procedure.'arguments: '.serialize($arguments));
+                error_log($_procedure.'options: '.serialize($options));
+                error_log($_procedure.'WsSecurityHeader: '.serialize($this->WsSecurityHeader()));
+            }
 			$result = parent::__soapCall($function_name, $arguments, $options, $this->WsSecurityHeader());
 			return $result;
 		}
 		catch (SoapFault $e)
 		{
-			throw new SoapFault($e->faultcode, $e->faultstring, NULL, '');//$e->detail);
+			throw new SoapFault($e->faultcode, $e->faultstring, NULL, $e->detail);
 		}
 	}
 	
 	public function __doRequest($request, $location, $action, $version, $one_way=NULL)
 	{
-		/*$cb = new WSSecurityCallbacks();
-		if( $cb->displaySoapRequests() )	// Display SOAP request XML prior to call for debugging? Driven by parameter setting in CustomerConnect.php.
-		{
-			echo '<p>*** Request XML Prior to __doRequest ***</p>';	// Yes
-			echo "<p> " . htmlspecialchars($request) . " </p>" ;
-		}*/
+        $_procedure = $this->_class."DO_REQUEST: ";
+		if(WOOTRACK_DEBUG) error_log($_procedure."Request XML Prior to __doRequest".serialize($request) );
 
-		if( $this->SSLForce )		// Force SSL version? Driven by parameter setting in CustomerConnect.php.
+		if( $this->SSLForce )		
 		{
+            if(WOOTRACK_DEBUG) error_log($_procedure."FORCE SSL: ".serialize($this->SSLForce) );
             $h = curl_init( $location );		// Init with URL
             curl_setopt( $h, CURLOPT_RETURNTRANSFER, true );
             curl_setopt( $h, CURLOPT_HTTPHEADER, Array( "SOAPAction: $action", "Content-Type: text/xml; charset=utf-8" ) );
@@ -112,6 +117,7 @@ class WSSoapClient extends SoapClient
 		}
 		else
 		{
+            if(WOOTRACK_DEBUG) error_log($_procedure."NO FORCE SSL" );
 			return parent::__doRequest($request, $location, $action, $version);	// No, use default SSL/TLS
 		}
 	}

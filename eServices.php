@@ -62,7 +62,8 @@ class STEeService
                 'exceptions' => true,			
                 'encoding' => 'UTF-8',
                 'soap_version' => SOAP_1_1,
-                'features' => SOAP_SINGLE_ELEMENT_ARRAYS
+                'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
+                'trace' => WOOTRACK_DEBUG
             );
 
             $oClient = new WSSoapClient($this->s_path . $this->wsdl_file, $clientArguments);	
