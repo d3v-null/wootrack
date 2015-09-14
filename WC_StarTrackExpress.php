@@ -216,7 +216,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             ),
             'password'      => array(
                 'title'         => __('StarTrack Password', 'wootrack'),
-                'type'          => 'password',
+                'type'          => 'text',
                 // 'description'   => '',                
                 'default'       => 'Tay12345'
             ),
@@ -232,7 +232,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'type'          => 'text',
                 'description'   => __('Postcode of the location which packages are dispatched from', 'wootrack'),
                 'desc_tip'      => true,                
-                'default'       => ''
+                'default'       => '6000'
             ),
             // 'check_rate'    => array(
             //     'title'         => __('Connection Check Rate', 'wootrack'),
