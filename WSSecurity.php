@@ -94,7 +94,13 @@ class WSSoapClient extends SoapClient
 	public function __doRequest($request, $location, $action, $version, $one_way=NULL)
 	{
         $_procedure = $this->_class."DO_REQUEST: ";
-		if(WOOTRACK_DEBUG) error_log($_procedure."Request XML Prior to __doRequest".serialize($request) );
+		if(WOOTRACK_DEBUG) {
+            error_log($_procedure."Request XML Prior to __doRequest".serialize($request) );
+            error_log($_procedure."location: ".serialize($location));
+            error_log($_procedure."action: ".serialize($action));
+            error_log($_procedure."version: ".serialize($version));
+            error_log($_procedure."one_way: ".serialize($one_way));
+        }
 
 		if( $this->SSLForce )		
 		{
@@ -104,7 +110,7 @@ class WSSoapClient extends SoapClient
             curl_setopt( $h, CURLOPT_HTTPHEADER, Array( "SOAPAction: $action", "Content-Type: text/xml; charset=utf-8" ) );
             curl_setopt( $h, CURLOPT_POSTFIELDS, $request );
             curl_setopt( $h, CURLOPT_SSLVERSION, $this->SSLForce );
-            // curl_setopt( $h, CURLOPT_SSL_VERIFYHOST, false );				// Omit validation of the StarTrack server's 
+            curl_setopt( $h, CURLOPT_SSL_VERIFYHOST, false );				// Omit validation of the StarTrack server's 
                                                                                 // Verisign SSL certificate (not recommended)
             curl_setopt( $h, CURLOPT_CAINFO, $this->cacert );						// On Windows, cURL needs to be told about Verisign root cert
             $response = curl_exec( $h );										// Perform SOAP call
