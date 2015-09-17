@@ -82,20 +82,6 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->forced_SSL_ver);
     }
 
-    public function is_connected(){
-        $_procedure = $this->_class."INVOKEWEBSERVICE: ";
-
-        if(isset($this->bad_environment) and $this->bad_environment){
-            //skip connection check, bad environment
-            $this->connected = false;
-        }
-
-        if(!isset($this->connected)){
-            $this->connected = $this->check_startrack_connection();
-        }
-        return $this->connected;
-    }
-
     public function invokeWebService($operation, $request = NULL)
     // wrapper for startrack's invokeWebService
     {
@@ -143,6 +129,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 $operation,
                 $request
             );
+            $this->connected = true;
         } catch (SoapFault $e) {
             if(WOOTRACK_DEBUG){
                 error_log($_procedure."Caught soapfault: ");
@@ -168,6 +155,20 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         }
         return true;
     }
+
+    public function is_connected(){
+        $_procedure = $this->_class."INVOKEWEBSERVICE: ";
+
+        if(isset($this->bad_environment) and $this->bad_environment){
+            //skip connection check, bad environment
+            $this->connected = false;
+        }
+
+        if(!isset($this->connected)){
+            $this->connected = $this->check_startrack_connection();
+        }
+        return $this->connected;
+    }    
     
     /**
      * Initialise Gateway Settings Form Fields
