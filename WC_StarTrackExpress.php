@@ -40,6 +40,16 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $this->init();
     }
 
+    function joinPaths() {
+        $paths = array();
+
+        foreach (func_get_args() as $arg) {
+            if ($arg !== '') { $paths[] = $arg; }
+        }
+
+        return preg_replace('#/+#','/',join('/', $paths));
+    }
+
     /**
      * Init Settings
      *
@@ -59,7 +69,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             'username'      => $this->get_option( 'username'         ),
             'password'      => $this->get_option( 'password'         ),
             'userAccessKey' => $this->get_option( 'access_key'       ),
-            'wsdlFilespec'  => $this->s_path . $this->wsdl_file,
+            'wsdlFilespec'  => $this->joinPaths($this->s_path, $this->wsdl_file),
         );
 		
         $this->header = array(
@@ -81,6 +91,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 		include_once('eServices.php');
         $this->oC = new STEeService($this->s_path, $this->wsdl_file, $this->forced_SSL_ver);
     }
+
 
     public function invokeWebService($operation, $request = NULL)
     // wrapper for startrack's invokeWebService
@@ -144,6 +155,10 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }    
 
     function check_startrack_connection(){
+        /**HOTFIX START*/
+        return true;
+        /**HOTFIX END*/
+
         try {
             $response = $this->invokeWebService( 'getServiceCodes' );
         }
@@ -188,7 +203,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'type'          => 'text',
                 'description'   => __('location of secure directory where starTrack files are stored (slash-terminated)'),
                 'desc_tip'      => true,
-                'default'       => '~/public_html/cgi_bin/',
+                'default'       => plugin_dir_path( __FILE__ )."/secure",
             ),
             'wsdl_file'     => array(
                 'title'         => __('WSDL File Spec', 'wootrack'),
@@ -252,7 +267,11 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     
     public function generate_debug_html() {
     try {
-        $response = $this->invokeWebService('getServiceCodes');
+        /**HOTFIX START*/
+        $response = null;
+        // $response = $this->invokeWebService('getServiceCodes');
+        /**HOTFIX END*/
+
     }
     catch (SoapFault $e) {
         if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
@@ -296,7 +315,10 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
     public function generate_services_html() {        
         try {
-            $response = $this->invokeWebService('getServiceCodes');
+            /**HOTFIX START*/
+            $response = null;
+            // $response = $this->invokeWebService('getServiceCodes');
+            /**HOTFIX END*/
         }
         catch (SoapFault $e) {
             if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
@@ -527,21 +549,21 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         } 
 
         elseif ( !is_dir( $this->s_path ) and $this->enabled == 'yes' ){
-            $message = __( 'Startrack Shipping Method is enabled, but the secure_path is not a valid directory', 'wootan' );
+            $message = __( 'Startrack Shipping Method is enabled, but the secure_path is not a valid directory: ', 'wootan' ) . $this->s_path;
             // $this->errors['invalid_secure_path'] = $message;
             echo $this->get_admin_notice( $message );
             $this->bad_environment = true;
         }
 
         elseif ( !is_readable( $this->s_path ) and $this->enabled == 'yes' ){
-            __( 'Startrack Shipping Method is enabled, but the secure_path is not a readable directory', 'wootan' ) ;
+            __( 'Startrack Shipping Method is enabled, but the secure_path is not a readable directory: ', 'wootan' ) . $this->s_path ;
             // $this->errors['secure_path_not_readable'] = $message;
             echo $this->get_admin_notice( $message );
             $this->bad_environment = true;
         }
 
         elseif ( !file_exists( $this->connection['wsdlFilespec'] ) and $this->enabled == 'yes' ){
-            $message = __( 'Startrack Shipping Method is enabled, but the plugin does not have read access to the wsdl file', 'wootan' ) ;
+            $message = __( 'Startrack Shipping Method is enabled, but the plugin does not have read access to the wsdl file: ' , 'wootan' )  . $this->connection['wsdlFilespec'] ;
             // $this->errors['invalid_wsdl_file'] = $message;
             echo $this->get_admin_notice( $message );
             $this->bad_environment = true;
@@ -599,7 +621,17 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             );
 
             try {
-                $response = $this->invokeWebService('validateAddress', $request);
+                /**HOTFIX START*/
+                // $response = $this->invokeWebService('validateAddress', $request);
+                $response = (object) array(
+                    "matchedAddress"=> array(
+                        (object) array(
+                            "suburbOrLocation"=>"",
+                            "state"=>""
+                        )
+                    )
+                );
+                /**HOTFIX END*/
             }
             catch (SoapFault $e) {
                 if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
@@ -709,9 +741,12 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 return;
             }
             
-            //If(WOOTRACK_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
+            If(WOOTRACK_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
             
             $prefs = get_option($this->service_pref_option, false);
+            /**HOTFIX START*/
+            $prefs = array("EXP"=> "Express");
+            /**HOTFIX END*/
             $params = $this->calculateShippingParams($package['contents']);
 
             foreach($prefs as $code => $name) {                                

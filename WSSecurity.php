@@ -87,7 +87,7 @@ class WSSoapClient extends SoapClient
 		}
 		catch (SoapFault $e)
 		{
-			throw new SoapFault($e->faultcode, $e->faultstring, NULL, $e->detail);
+			throw new SoapFault($e->faultcode, $e->faultstring, NULL);//, $e->detail);
 		}
 	}
 	
