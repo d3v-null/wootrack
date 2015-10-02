@@ -78,7 +78,11 @@ class STEeService
         }
         catch (SoapFault $e)
         {
-            throw new SoapFault($e->faultcode, $e->faultstring, NULL, "");//$e->detail);
+            if(isset($e->detail)){
+                throw new SoapFault($e->faultcode, $e->faultstring, NULL, $e->detail);
+            } else {
+                throw new SoapFault($e->faultcode, $e->faultstring, NULL, "");//$e->detail); 
+            }
             // It is left to the caller to handle this exception as desired
         }
 	}

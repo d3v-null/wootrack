@@ -155,6 +155,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }    
 
     function check_startrack_connection(){
+        $_procedure = $this->_class."CHECK_STARTRACK_CONNECTION: ";
+
         /**HOTFIX START*/
         return true;
         /**HOTFIX END*/
@@ -163,7 +165,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             $response = $this->invokeWebService( 'getServiceCodes' );
         }
         catch (SoapFault $e) {
-            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
             $notice_string = "Unfortunately our StarTrack shipping service is temporarily unavailable. If you would like to ship your order with Startrack, plesae <a href='contact us'>contact our office</a> to place your order";
             if(!is_admin()) wc_print_notice($notice_string, 'notice');
             return false;
@@ -172,7 +174,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }
 
     public function is_connected(){
-        $_procedure = $this->_class."INVOKEWEBSERVICE: ";
+        $_procedure = $this->_class."IS_CONNECTED: ";
 
         if(isset($this->bad_environment) and $this->bad_environment){
             //skip connection check, bad environment
@@ -190,6 +192,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      */
     
     function init_form_fields() {
+        $_procedure = $this->_class."INIT_FORM_FIELDS: ";
+
         $this->form_fields = array(
             'enabled'       => array(
                 'title'         => __('Enable/Disable', 'woocommerce'),
@@ -203,7 +207,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 'type'          => 'text',
                 'description'   => __('location of secure directory where starTrack files are stored (slash-terminated)'),
                 'desc_tip'      => true,
-                'default'       => plugin_dir_path( __FILE__ )."/secure",
+                'default'       => $this->joinPaths(plugin_dir_path( __FILE__ ),"/secure"),
             ),
             'wsdl_file'     => array(
                 'title'         => __('WSDL File Spec', 'wootrack'),
@@ -274,7 +278,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
     }
     catch (SoapFault $e) {
-        if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+        if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
         //TODO: add admin message: could not contact StarTrack eServices.
     }
 ?>
@@ -313,7 +317,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 <?         
     }
 
-    public function generate_services_html() {        
+    public function generate_services_html() {  
+        $_procedure = $this->_class."GENERATE_SERVICES_HTML: ";
+
         try {
             /**HOTFIX START*/
             $response = null;
@@ -321,7 +327,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             /**HOTFIX END*/
         }
         catch (SoapFault $e) {
-            if(WOOTRACK_DEBUG) error_log("could not connect to starTrack eServices: ".$e);
+            if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
             //TODO: add admin message: could not contact StarTrack eServices.
         }
         
@@ -397,6 +403,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }
 
     public function generate_sidebar_html(){
+        $_procedure = $this->_class."GENERATE_SIDEBAR_HTML: ";
+
         ?>
 <div id="wootrack-sidebar" style="float:right; width:20%;">
     <div class="wootrack-section">
@@ -419,6 +427,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }
 
     public function admin_options() {
+        $_procedure = $this->_class."ADMIN_OPTIONS: ";
+
         global $woocommerce;
         ?>
 <div id="wrapper" style="overflow:auto">
@@ -502,7 +512,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     }  
     
     function admin_notice(){
-        If(WOOTRACK_DEBUG) error_log("ADMIN NOTICE CALLED errors: ".serialize($this->errors));
+        $_procedure = $this->_class."ADMIN_NOTICE: ";
+
+        If(WOOTRACK_DEBUG) error_log($_procedure."ADMIN NOTICE CALLED errors: ".serialize($this->errors));
     
         echo '<div class="error">';
         foreach($this->errors as $k => $v){
@@ -525,6 +537,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      * @return void
      */
     private function environment_check() {
+        $_procedure = $this->_class."ENVIRONMENT_CHECK: ";
+
         global $woocommerce;
 
         if ( get_woocommerce_currency() != "AUD" ) {
@@ -577,36 +591,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         }
     }
 
-    function validate_secure_path_field( $key ) {
-        $secure_path = get_option('wsdl_file', "NOTSET");
-        if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
-            $secure_path = trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
-        if( !is_dir( $this->s_path) ){
-            //$this->errors['secure_path'] = __('This is not a valid directory', 'wootrack');
-        } else if( !is_readable( $this->s_path) ) {
-            //$this->errors['secure_path'] = __('PHP does not have read access to this directory', 'wootrack');
-        } /*else if( !is_writeable($s_path) ) {
-            $this->errors['secure_path'] = __('PHP does not have write access to this directory', 'wootrack');
-        }*/ else {
-            //$this->validations['secure_path'] = __('Directory is accessible', 'wootrack');
-        }
-        return $secure_path;
-    }
-    
-    /**function validate_wsdl_file_field( $key ){
-        $wsdl_file = get_option('wsdl_file', "NOTSET");
-        if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
-            $wsdl_file = trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
-        if( !is_readable( $wsdl_file) ) {
-            $this->errors['wsdl_file'] = __('PHP does not have read access to this file', 'wootrack');
-        } else {
-            //$this->validations['wsdl_file'] = __('File is accessible', 'wootrack');;
-        }
-        return $wsdl_file;
-    }**/
-    
     function get_location( $pcode ){
-        $_procedure = "GET_LOCATION";
+        $_procedure = $this->_class."GET_LOCATION: ";
 
         $location = array();
         
@@ -649,9 +635,29 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         }
 
         return $location;
-    }    
+    }        
+
+    function validate_secure_path_field( $key ) {
+        $_procedure = $this->_class."VALIDATE_SECURE_PATH_FIELD: ";
+
+        $secure_path = get_option('wsdl_file', "NOTSET");
+        if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
+            $secure_path = trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
+        if( !is_dir( $this->s_path) ){
+            //$this->errors['secure_path'] = __('This is not a valid directory', 'wootrack');
+        } else if( !is_readable( $this->s_path) ) {
+            //$this->errors['secure_path'] = __('PHP does not have read access to this directory', 'wootrack');
+        } /*else if( !is_writeable($s_path) ) {
+            $this->errors['secure_path'] = __('PHP does not have write access to this directory', 'wootrack');
+        }*/ else {
+            //$this->validations['secure_path'] = __('Directory is accessible', 'wootrack');
+        }
+        return $secure_path;
+    }
     
     function validate_sender_pcode_field( $key ) {
+        $_procedure = $this->_class."VALIDATE_SENDER_PCODE_FIELD: ";
+
         $pcode = "";
         if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
             $pcode = wp_kses_post( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) );
@@ -669,11 +675,26 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         }
         
         return $pcode;
-    }
+    }    
+    
+    /**function validate_wsdl_file_field( $key ){
+        $wsdl_file = get_option('wsdl_file', "NOTSET");
+        if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
+            $wsdl_file = trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
+        if( !is_readable( $wsdl_file) ) {
+            $this->errors['wsdl_file'] = __('PHP does not have read access to this file', 'wootrack');
+        } else {
+            //$this->validations['wsdl_file'] = __('File is accessible', 'wootrack');;
+        }
+        return $wsdl_file;
+    }**/
+ 
     
     //function validate_startrack_connection() {
         
     function process_service_preferences() {
+        $_procedure = $this->_class."PROCESS_SERVICE_PREFERENCES: ";
+
         $service_pref_code  = array();
         $service_pref_name  = array();
         $service_prefs      = array();
@@ -691,6 +712,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     //TODO: postcode and username validation
     
     function calculateShippingParams($contents){
+        $_procedure = $this->_class."CALCULATESHIPPINGPARAMS: ";
+
         //default values for parameters
         $params = array(
             'weight'    => 0,
@@ -712,7 +735,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             }
         }
         
-        If(WOOTRACK_DEBUG) error_log( "Shipping params: \n".serialize($params) );
+        If(WOOTRACK_DEBUG) error_log($_procedure."Shipping params: \n".serialize($params) );
         
         return $params;
     }
@@ -728,8 +751,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      * @return void
      */
     function calculate_shipping( $package ) {
+        $_procedure = $this->_class."CALCULATE_SHIPPING: ";
 
-        If(WOOTRACK_DEBUG) error_log("-> destination: \n    " . serialize($package['destination']));
+        If(WOOTRACK_DEBUG) error_log($_procedure."-> destination: \n    " . serialize($package['destination']));
         
         $destination = $package['destination'];
         
@@ -741,7 +765,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 return;
             }
             
-            If(WOOTRACK_DEBUG) error_log( "Validating receiver location: \n".serialize($response) ); 
+            If(WOOTRACK_DEBUG) error_log($_procedure."Validating receiver location: \n".serialize($receiverLocation) ); 
             
             $prefs = get_option($this->service_pref_option, false);
             /**HOTFIX START*/
@@ -776,14 +800,14 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                     }
                     catch (SoapFault $e) {
                         $response = false;
-                        If(WOOTRACK_DEBUG) error_log( "Exception in calculateCost, " . $e );
-                        If(WOOTRACK_DEBUG) error_log( "details: " . $e->getMessage() );
+                        If(WOOTRACK_DEBUG) error_log($_procedure."Exception in calculateCost, " . $e );
+                        If(WOOTRACK_DEBUG) error_log($_procedure."details: " . $e->getMessage() );
                         //TODO: add admin message: could not contact StarTrack eServices.
                     }
                     
                 }
                 
-                If(WOOTRACK_DEBUG) error_log( "response: \n".serialize($response) );
+                If(WOOTRACK_DEBUG) error_log($_procedure."response: \n".serialize($response) );
                 // If(WOOTRACK_DEBUG) error_log( 'request: '.serialize($request).'\n response: '.serialize($response) );
             }
         }
