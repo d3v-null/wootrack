@@ -158,7 +158,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
         $_procedure = $this->_class."CHECK_STARTRACK_CONNECTION: ";
 
         /**HOTFIX START*/
-        return true;
+        // return true;
         /**HOTFIX END*/
 
         try {
@@ -272,8 +272,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     public function generate_debug_html() {
     try {
         /**HOTFIX START*/
-        $response = null;
-        // $response = $this->invokeWebService('getServiceCodes');
+        // $response = null;
+        $response = $this->invokeWebService('getServiceCodes');
         /**HOTFIX END*/
 
     }
@@ -322,8 +322,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
         try {
             /**HOTFIX START*/
-            $response = null;
-            // $response = $this->invokeWebService('getServiceCodes');
+            // $response = null;
+            $response = $this->invokeWebService('getServiceCodes');
             /**HOTFIX END*/
         }
         catch (SoapFault $e) {
@@ -782,7 +782,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             
             $prefs = get_option($this->service_pref_option, false);
             /**HOTFIX START*/
-            $prefs = array("EXP"=> "Express");
+            // $prefs = array("EXP"=> "Express");
             /**HOTFIX END*/
             $params = $this->calculateShippingParams($package['contents']);
 
