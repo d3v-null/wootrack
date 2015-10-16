@@ -623,6 +623,8 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
                 if(WOOTRACK_DEBUG) error_log($_procedure."could not connect to starTrack eServices: ".$e);
                 $response = false;
             }      
+
+            if(WOOTRACK_DEBUG) error_log($_procedure."response: ".serialize($response));
             
             if( $response && $response->matchedAddress ){
                 $location['postCode'] = $pcode;
@@ -724,6 +726,25 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     
     //TODO: postcode and username validation
     
+    public function dimensionInMeters($dimension){
+        $_procedure = $this->_class."DIMENSIONINMETERS: ";
+        $unit = get_option( 'woocommerce_dimension_unit' );
+
+        if(WOOTRACK_DEBUG) error_log($_procedure."converting dimension ".serialize($dimension)." ".serialize($unit));
+        switch ($unit) {
+            case 'mm':
+                return $dimension / 1000;
+            case 'cm':
+                return $dimension / 100;
+            case 'in':
+                return $dimension * 0.0254;
+            case 'yd':
+                return $dimension * 0.9144;
+            default:
+                return $dimension;
+        }
+    }
+
     function calculateShippingParams($contents){
         $_procedure = $this->_class."CALCULATESHIPPINGPARAMS: ";
 
@@ -742,7 +763,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
             if($line['data']->has_dimensions()){
                 $dimensions = explode(' x ', $line['data']->get_dimensions());
                 $dimensions[2] = str_replace( ' '.get_option( 'woocommerce_dimension_unit' ), '', $dimensions[2]); 
-                $params['volume'] += $line['quantity'] * array_product( $dimensions ) / 1000000;
+                $dimensionsInMeters = array_map(array(&$this,'dimensionInMeters'), $dimensions);
+                if(WOOTRACK_DEBUG) error_log($_procedure."dimensionsInMeters: ".serialize($dimensionsInMeters));
+                $params['volume'] += $line['quantity'] * array_product( $dimensionsInMeters ) ;
             } else {
                 // throw exception because can't get dimensions
             }
@@ -764,7 +787,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      * @return void
      */
     function calculate_shipping( $package ) {
-        $_procedure = $this->_class."CALCULATE_SHIPPING: ";
+        $_procedure = $this->_class."CALCULATE_SHIPPING: ".serialize($package);
 
         If(WOOTRACK_DEBUG) error_log($_procedure."-> destination: \n    " . serialize($package['destination']));
         
