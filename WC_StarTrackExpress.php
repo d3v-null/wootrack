@@ -608,15 +608,15 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
             try {
                 /**HOTFIX START*/
-                // $response = $this->invokeWebService('validateAddress', $request);
-                $response = (object) array(
-                    "matchedAddress"=> array(
-                        (object) array(
-                            "suburbOrLocation"=>"",
-                            "state"=>""
-                        )
-                    )
-                );
+                $response = $this->invokeWebService('validateAddress', $request);
+                // $response = (object) array(
+                //     "matchedAddress"=> array(
+                //         (object) array(
+                //             "suburbOrLocation"=>"",
+                //             "state"=>""
+                //         )
+                //     )
+                // );
                 /**HOTFIX END*/
             }
             catch (SoapFault $e) {
@@ -640,17 +640,30 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
     function validate_secure_path_field( $key ) {
         $_procedure = $this->_class."VALIDATE_SECURE_PATH_FIELD: ";
 
-        $secure_path = get_option('wsdl_file', "NOTSET");
-        if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) )
-            $secure_path = trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
-        if( !is_dir( $this->s_path) ){
+        if(WOOTRACK_DEBUG) error_log($_procedure."validating secure_path: ".serialize($key));
+
+        $secure_path = $this->get_option('secure_path');
+
+        if(WOOTRACK_DEBUG) error_log($_procedure."fallback secure_path: ".serialize($secure_path));
+
+        $post_key = $this->plugin_id . $this->id . '_' . $key ;
+        if ( isset( $_POST[ $post_key ] ) ) {
+            $secure_path = trim( stripslashes( $_POST[ $post_key ] ) );
+            if(WOOTRACK_DEBUG) error_log($_procedure."POST secure_path: ".serialize($secure_path));
+        }
+
+        if( substr($secure_path,-1) != "/"){
+            $secure_path .= "/";
+        }
+
+        if( !is_dir( $secure_path ) ){
+            if(WOOTRACK_DEBUG) error_log($_procedure."secure_path not a directory");
             //$this->errors['secure_path'] = __('This is not a valid directory', 'wootrack');
-        } else if( !is_readable( $this->s_path) ) {
-            //$this->errors['secure_path'] = __('PHP does not have read access to this directory', 'wootrack');
-        } /*else if( !is_writeable($s_path) ) {
+        }  /*else if( !is_writeable($s_path) ) {
             $this->errors['secure_path'] = __('PHP does not have write access to this directory', 'wootrack');
         }*/ else {
-            //$this->validations['secure_path'] = __('Directory is accessible', 'wootrack');
+            if(WOOTRACK_DEBUG) error_log($_procedure."secure_path not readable");
+            // $this->validations['secure_path'] = __('Directory is accessible', 'wootrack');
         }
         return $secure_path;
     }
