@@ -3,7 +3,7 @@ wootrack
 
 A wordpress plugin that registers the StarTrack shipping method in WooCommerce.
 
-This is an advanced plugin that is difficult to configure and not written to be very robust. Use at your own risk :P
+This is an advanced plugin that is difficult to configure. It will not work out of the box, and you will need to obtain an API key from StarTrack. 
 
 Installation
 ------------
