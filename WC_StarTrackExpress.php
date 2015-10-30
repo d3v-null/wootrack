@@ -626,7 +626,7 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
 
             if(WOOTRACK_DEBUG) error_log($_procedure."response: ".serialize($response));
             
-            if( $response && $response->matchedAddress ){
+            if( $response && isset($response->matchedAddress) ){
                 $location['postCode'] = $pcode;
                 $location['suburb']   = $response->matchedAddress[0]->suburbOrLocation;
                 $location['state']    = $response->matchedAddress[0]->state;
