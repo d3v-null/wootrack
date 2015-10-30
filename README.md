@@ -28,8 +28,7 @@ Because of the way the StarTrack API handles SOAP calls, certail files (a certif
 
 Issues
 ------
-
-this plugin has been working fine for over a year, however as of a week ago, there has been a problem connecting to the eServices API with the Production XML file, which I am in the process of resolving with StarTrack. Until then, only the Stagin XML will work (this is actually sufficient for the plugin to run however)
+This plugin functioned very well from 2014 to 2015, accurately and reliably giving shipping estimates to wordpress in good time, however as of mid 2015, Startrack's API hasn't been doing so well. Without warning, Startrack has made several updates that have broken the plugin, with each problem taking months for support to patch. We have also had numerous problems with service disruptions when the Startrack servers are under load, where the api would take half a second to respond to calls. Sometimes switching to the Staging XML will resolve these issues, since I believe there is less work in authenticating calls and the server is less contended. Conveniently this plugin only uses the getServiceCodes and calculateCost calls so the staging XML is sufficient for the plugin to function fully.
 
 Debugging
 ---------
@@ -44,3 +43,5 @@ Support
 -------
 
 If you have any problems using or installing this plugin, please submit a github issue or contact me on derwent@laserphile.com
+
+If this plugin has saved you a bunch of money, why not by me a [beer](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2PF5FGAHHBFU2&lc=AU&item_name=Laserphile%20Developers&currency_code=AUD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted) ? :D
