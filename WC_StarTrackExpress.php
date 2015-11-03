@@ -787,8 +787,9 @@ class WC_StarTrack_Express extends WC_Shipping_Method {
      * @return void
      */
     function calculate_shipping( $package ) {
-        $_procedure = $this->_class."CALCULATE_SHIPPING: ".serialize($package);
+        $_procedure = $this->_class."CALCULATE_SHIPPING: ";
 
+        if(WOOTRACK_DEBUG) error_log($_procedure.serialize($package) );
         If(WOOTRACK_DEBUG) error_log($_procedure."-> destination: \n    " . serialize($package['destination']));
         
         $destination = $package['destination'];

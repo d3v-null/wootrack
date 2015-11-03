@@ -34,15 +34,17 @@ Once you have satisfied these requirements you can install the plugin
 
 *Setp 3:* Open worpress admin -> woocommerce -> settings -> shipping. If you've correctly activated the plugin you should see the StarTrack method. Open this shipping method.
 
-*Step 4:* Enter the location on the server of the "secure" directory eg: "/home/ypu-rwebsite/public_html/cgi-bin/" (remember to terminate with a /)
+*Step 4:* Test that you have a connection to the Startrack API by ensuring that the shipping method settings shows no warnings when you open it, and allows you to choose from a number of different shipping methods using the default (Staging) credentials. Also ensure that you can view these shipping methods at checkout correctly (staging credentials will usually quote the cost as free) 
 
-*Step 5:* Enter the WSDL File. Use the the staging xml file (eServicesStagingWSDL.xml) to start with, then when your connection works change this to eServicesProductionWSDL.xml.
+*Step 5:* Enter the location on the server of the "secure" directory eg: "/home/your-website/public_html/cgi-bin/" (remember to terminate with a /)
 
-*Step 6:* Configure the plugin with the username and API keys supplied by startrack. 
+*Step 6:* Enter the WSDL File. Use the the staging xml file (eServicesStagingWSDL.xml) to start with, then when your connection works change this to eServicesProductionWSDL.xml.
 
-*Step 7:* Fill in and save the rest of the settings and ensure that there are no warnings before continuing
+*Step 7:* Configure the plugin with the username and API keys supplied by startrack. 
 
-*Step 8:* When you have a connection to the StarTrack eServices API, you will be able to select from the available shipping options which methods to give to your customers.
+*Step 8:* Fill in and save the rest of the settings and ensure that there are no warnings before continuing
+
+*Step 9:* When you have a connection to the StarTrack eServices API, you will be able to select from the available shipping options which methods to give to your customers.
 
 == Frequently Asked Questions ==
 
